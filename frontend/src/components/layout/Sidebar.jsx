@@ -1,5 +1,7 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
+import { useWorkspace } from '../../app/useWorkspace';
+import { formatCompact, initialsOf } from '../../lib/format';
 import {
   LayoutDashboard,
   Package,
@@ -18,6 +20,10 @@ import {
 } from 'lucide-react';
 
 export const Sidebar = ({ isCollapsed, onToggleCollapse, isMobileOpen, onCloseMobile }) => {
+  const { summary, profile } = useWorkspace();
+  // Badges hide themselves when the count is zero or not loaded yet.
+  const badge = (n) => (n ? formatCompact(n) : undefined);
+
   const navSections = [
     {
       title: 'Main',
@@ -28,9 +34,9 @@ export const Sidebar = ({ isCollapsed, onToggleCollapse, isMobileOpen, onCloseMo
     {
       title: 'Inventory',
       items: [
-        { path: '/products', label: 'Products', icon: Package, badge: '14.8k' },
-        { path: '/receipts', label: 'Receipts', icon: ArrowDownLeft, badge: '6' },
-        { path: '/delivery-orders', label: 'Delivery Orders', icon: ArrowUpRight, badge: '38' },
+        { path: '/products', label: 'Products', icon: Package, badge: badge(summary?.productsCount) },
+        { path: '/receipts', label: 'Receipts', icon: ArrowDownLeft, badge: badge(summary?.pendingReceipts) },
+        { path: '/delivery-orders', label: 'Delivery Orders', icon: ArrowUpRight, badge: badge(summary?.pendingDeliveries) },
         { path: '/internal-transfers', label: 'Internal Transfers', icon: ArrowLeftRight },
         { path: '/inventory-adjustments', label: 'Adjustments', icon: SlidersHorizontal },
         { path: '/stock-ledger', label: 'Stock Ledger', icon: FileSpreadsheet },
@@ -40,7 +46,7 @@ export const Sidebar = ({ isCollapsed, onToggleCollapse, isMobileOpen, onCloseMo
     {
       title: 'Insights',
       items: [
-        { path: '/low-stock', label: 'Low Stock', icon: AlertTriangle, badge: '17', alertBadge: true },
+        { path: '/low-stock', label: 'Low Stock', icon: AlertTriangle, badge: badge(summary?.lowStockCount), alertBadge: true },
         { path: '/analytics', label: 'Analytics', icon: BarChart3 }
       ]
     },
@@ -110,12 +116,12 @@ export const Sidebar = ({ isCollapsed, onToggleCollapse, isMobileOpen, onCloseMo
 
       <div className="sidebar-footer">
         <div className="user-profile-summary">
-          <div className="user-avatar" title="Yashwanth B - Operations Lead">
-            YB
+          <div className="user-avatar" title={profile ? `${profile.fullName} - ${profile.jobTitle}` : ''}>
+            {initialsOf(profile?.fullName)}
           </div>
           <div className="user-meta">
-            <span className="user-name">Yashwanth B</span>
-            <span className="user-role">Operations Lead</span>
+            <span className="user-name">{profile?.fullName || 'Signed in'}</span>
+            <span className="user-role">{profile?.jobTitle || (profile?.role === 'MANAGER' ? 'Inventory Manager' : 'Warehouse Staff')}</span>
           </div>
         </div>
       </div>

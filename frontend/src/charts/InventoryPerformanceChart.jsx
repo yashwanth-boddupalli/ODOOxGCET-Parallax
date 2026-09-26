@@ -1,33 +1,44 @@
 import React from 'react';
-import { mockPerformanceData } from '../data/mockCharts';
 import { TrendingUp, CheckCircle, ShieldCheck } from 'lucide-react';
+import { formatCompact } from '../lib/format';
 
-export const InventoryPerformanceChart = () => {
+const lastValue = (data, key) => [...data].reverse().find((d) => d[key] !== null && d[key] !== undefined)?.[key] ?? null;
+const firstValue = (data, key) => data.find((d) => d[key] !== null && d[key] !== undefined)?.[key] ?? null;
+
+// data: [{ month, turnover, fulfillment, accuracy, volume }] from dashboard_performance
+export const InventoryPerformanceChart = ({ data = [], loading = false }) => {
   const width = 800;
   const height = 180;
   const padding = { top: 20, right: 30, bottom: 35, left: 40 };
+  const plotHeight = height - padding.top - padding.bottom;
 
-  const minTurnover = 4.0;
-  const maxTurnover = 7.0;
+  // Scales come from the data (turnover line and volume bars share the plot area).
+  const maxTurnover = Math.max(1, ...data.map((d) => d.turnover ?? 0)) * 1.25;
+  const maxVolume = Math.max(1, ...data.map((d) => d.volume ?? 0));
+  const yFor = (t) => padding.top + (1 - t / maxTurnover) * plotHeight;
 
-  // Points for turnover rate curve
-  const points = mockPerformanceData.map((d, index) => {
-    const x = padding.left + (index / (mockPerformanceData.length - 1)) * (width - padding.left - padding.right);
-    const y = padding.top + (1 - (d.turnover - minTurnover) / (maxTurnover - minTurnover)) * (height - padding.top - padding.bottom);
-    return { ...d, x, y };
-  });
+  const points = data.map((d, index) => ({
+    ...d,
+    x: padding.left + (index / Math.max(data.length - 1, 1)) * (width - padding.left - padding.right),
+    y: d.turnover === null ? null : yFor(d.turnover),
+  }));
+  const drawn = points.filter((p) => p.y !== null);
+  const linePath = drawn.reduce((acc, curr, idx) => (idx === 0 ? `M ${curr.x} ${curr.y}` : `${acc} L ${curr.x} ${curr.y}`), '');
 
-  const linePath = points.reduce((acc, curr, idx) => {
-    return idx === 0 ? `M ${curr.x} ${curr.y}` : `${acc} L ${curr.x} ${curr.y}`;
-  }, '');
+  const turnover = lastValue(data, 'turnover');
+  const turnoverStart = firstValue(data, 'turnover');
+  const turnoverChange = turnover !== null && turnoverStart ? ((turnover - turnoverStart) / turnoverStart) * 100 : null;
+  const fulfillment = lastValue(data, 'fulfillment');
+  const accuracy = lastValue(data, 'accuracy');
+  const firstMonth = data[0]?.month;
 
   return (
     <div className="content-card chart-full-width">
       <div className="card-header">
         <div className="card-title-group">
-          <h2 className="card-title">Inventory Performance & Velocity (H1 Trend)</h2>
+          <h2 className="card-title">Inventory Performance & Velocity ({data.length || 6}-Month Trend)</h2>
           <span className="card-subtitle">
-            Longitudinal inventory turnover ratio, order fulfillment SLA, and warehouse throughput
+            Inventory turnover, on-time delivery rate, and units moved per month
           </span>
         </div>
 
@@ -53,8 +64,12 @@ export const InventoryPerformanceChart = () => {
               <TrendingUp size={14} color="#2563eb" />
               <span className="perf-metric-title">Annualized Turnover</span>
             </div>
-            <span className="perf-metric-val">6.2x</span>
-            <span className="perf-metric-sub">+29.1% improvement from Jan</span>
+            <span className="perf-metric-val">{turnover === null ? '—' : `${turnover}x`}</span>
+            <span className="perf-metric-sub">
+              {turnoverChange === null
+                ? 'Shipped units ÷ average stock, per year'
+                : `${turnoverChange >= 0 ? '+' : ''}${turnoverChange.toFixed(1)}% vs ${firstMonth}`}
+            </span>
           </div>
 
           <div className="perf-metric-mini">
@@ -62,8 +77,8 @@ export const InventoryPerformanceChart = () => {
               <CheckCircle size={14} color="#059669" />
               <span className="perf-metric-title">Order Fulfillment Rate</span>
             </div>
-            <span className="perf-metric-val">99.2%</span>
-            <span className="perf-metric-sub">Surpassed 98.5% SLA benchmark</span>
+            <span className="perf-metric-val">{fulfillment === null ? '—' : `${fulfillment}%`}</span>
+            <span className="perf-metric-sub">Deliveries shipped on or before their scheduled date</span>
           </div>
 
           <div className="perf-metric-mini">
@@ -71,107 +86,71 @@ export const InventoryPerformanceChart = () => {
               <ShieldCheck size={14} color="#4f46e5" />
               <span className="perf-metric-title">Stock Audit Accuracy</span>
             </div>
-            <span className="perf-metric-val">99.8%</span>
-            <span className="perf-metric-sub">Across 4 facilities (Zero critical drift)</span>
+            <span className="perf-metric-val">{accuracy === null ? '—' : `${accuracy}%`}</span>
+            <span className="perf-metric-sub">100% minus adjusted units as a share of stock</span>
           </div>
         </div>
 
         {/* SVG Multi-axis chart */}
-        <div className="svg-chart-container">
-          <svg viewBox={`0 0 ${width} ${height}`} className="chart-svg" style={{ height: '200px' }}>
-            <defs>
-              <linearGradient id="volumeBarGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#93c5fd" stopOpacity="0.8" />
-                <stop offset="100%" stopColor="#dbeafe" stopOpacity="0.3" />
-              </linearGradient>
-            </defs>
+        {data.length === 0 ? (
+          <div className="chart-empty">{loading ? 'Loading performance…' : 'No history yet.'}</div>
+        ) : (
+          <div className="svg-chart-container">
+            <svg viewBox={`0 0 ${width} ${height}`} className="chart-svg" style={{ height: '200px' }}>
+              <defs>
+                <linearGradient id="volumeBarGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#93c5fd" stopOpacity="0.8" />
+                  <stop offset="100%" stopColor="#dbeafe" stopOpacity="0.3" />
+                </linearGradient>
+              </defs>
 
-            {/* Grid Lines */}
-            {[4.5, 5.5, 6.5].map((val) => {
-              const yVal = padding.top + (1 - (val - minTurnover) / (maxTurnover - minTurnover)) * (height - padding.top - padding.bottom);
-              return (
-                <g key={val}>
-                  <line 
-                    x1={padding.left} 
-                    y1={yVal} 
-                    x2={width - padding.right} 
-                    y2={yVal} 
-                    className="grid-line" 
-                  />
-                  <text 
-                    x={padding.left - 8} 
-                    y={yVal + 4} 
-                    textAnchor="end" 
-                    fontSize="11" 
-                    fill="#94a3b8"
-                  >
-                    {val}x
+              {/* Grid Lines */}
+              {[0.25, 0.5, 0.75].map((f) => {
+                const val = maxTurnover * f;
+                return (
+                  <g key={f}>
+                    <line x1={padding.left} y1={yFor(val)} x2={width - padding.right} y2={yFor(val)} className="grid-line" />
+                    <text x={padding.left - 8} y={yFor(val) + 4} textAnchor="end" fontSize="11" fill="#94a3b8">
+                      {val.toFixed(1)}x
+                    </text>
+                  </g>
+                );
+              })}
+
+              {/* Volume background bars */}
+              {points.map((pt) => {
+                const barHeight = ((pt.volume ?? 0) / maxVolume) * plotHeight;
+                return (
+                  <g key={`bar-${pt.month}`}>
+                    <rect x={pt.x - 22} y={height - padding.bottom - barHeight} width="44" height={barHeight} rx="4" fill="url(#volumeBarGrad)">
+                      <title>{`${pt.month}: ${formatCompact(pt.volume)} units moved`}</title>
+                    </rect>
+                  </g>
+                );
+              })}
+
+              {/* Turnover Line */}
+              <path d={linePath} fill="none" stroke="#2563eb" strokeWidth="3" strokeLinecap="round" />
+
+              {/* Nodes and Labels */}
+              {points.map((pt) => (
+                <g key={pt.month}>
+                  {pt.y !== null && (
+                    <>
+                      <circle cx={pt.x} cy={pt.y} r="5" fill="#ffffff" stroke="#2563eb" strokeWidth="3" />
+                      <text x={pt.x} y={pt.y - 10} textAnchor="middle" fontSize="11" fontWeight="600" fill="#1e293b">
+                        {pt.turnover}x
+                      </text>
+                    </>
+                  )}
+                  <text x={pt.x} y={height - 12} textAnchor="middle" fontSize="12" fontWeight="500" fill="#64748b">
+                    {pt.month}
                   </text>
                 </g>
-              );
-            })}
-
-            {/* Volume background bars */}
-            {points.map((pt) => {
-              const barHeight = ((pt.volume - 15000) / 15000) * (height - padding.top - padding.bottom);
-              const barY = height - padding.bottom - barHeight;
-              return (
-                <rect
-                  key={pt.month}
-                  x={pt.x - 22}
-                  y={barY}
-                  width="44"
-                  height={barHeight}
-                  rx="4"
-                  fill="url(#volumeBarGrad)"
-                />
-              );
-            })}
-
-            {/* Turnover Line */}
-            <path 
-              d={linePath} 
-              fill="none" 
-              stroke="#2563eb" 
-              strokeWidth="3" 
-              strokeLinecap="round" 
-            />
-
-            {/* Nodes and Labels */}
-            {points.map((pt) => (
-              <g key={pt.month}>
-                <circle
-                  cx={pt.x}
-                  cy={pt.y}
-                  r="5"
-                  fill="#ffffff"
-                  stroke="#2563eb"
-                  strokeWidth="3"
-                />
-                <text
-                  x={pt.x}
-                  y={pt.y - 10}
-                  textAnchor="middle"
-                  fontSize="11"
-                  fontWeight="600"
-                  fill="#1e293b"
-                >
-                  {pt.turnover}x
-                </text>
-                <text
-                  x={pt.x}
-                  y={height - 12}
-                  textAnchor="middle"
-                  fontSize="12"
-                  fontWeight="500"
-                  fill="#64748b"
-                >
-                  {pt.month}
-                </text>
-              </g>
-            ))}
-          </svg>
-        </div>
+              ))}
+            </svg>
+          </div>
+        )}
       </div>
     </div>
   );

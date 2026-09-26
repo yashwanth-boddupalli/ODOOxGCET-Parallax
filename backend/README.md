@@ -1,12 +1,6 @@
 # Backend
 
-This directory will contain the server-side logic and API layer.
+StockSense has no separate API server. The backend is **Supabase**: Postgres with Row Level Security,
+Supabase Auth, and database functions that do every stock change in one transaction.
 
-## Planned Contents
-
-- API endpoints and route handlers
-- Business logic and validation
-- Authentication and authorization
-- Server utilities and middleware
-
-> Development begins in **Phase 11**.
+Everything lives in [`../supabase`](../supabase/README.md): migrations, seed data, tests and setup steps.

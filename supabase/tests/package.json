@@ -1,0 +1,13 @@
+{
+  "name": "stocksense-db-tests",
+  "private": true,
+  "type": "module",
+  "description": "Runs the Supabase migrations and seed in PGlite (in-process Postgres) and checks the stock engine.",
+  "scripts": {
+    "test": "node --test --test-concurrency=1 ./*.test.js",
+    "bundle": "node ./bundle.js"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "^0.5.8"
+  }
+}
