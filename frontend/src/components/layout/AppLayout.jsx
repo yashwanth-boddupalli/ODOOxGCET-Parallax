@@ -7,6 +7,7 @@ import { ProductFormModal } from '../forms/ProductFormModal';
 import { OperationFormModal } from '../forms/OperationFormModal';
 import { OperationDrawer } from '../forms/OperationDrawer';
 import { WarehouseFormModal } from '../forms/WarehouseFormModal';
+import { AssistantWidget } from '../assistant/AssistantWidget';
 import { WorkspaceContext, useAsync } from '../../app/useWorkspace';
 import { useAuth } from '../../auth/useAuth';
 import { getDashboardSummary, getSettings, listWarehouses } from '../../api';
@@ -137,6 +138,9 @@ export const AppLayout = () => {
           <WarehouseFormModal mode={modal.mode} warehouse={modal.warehouse} onClose={closeModal} />
         )}
         {documentId && <OperationDrawer documentId={documentId} onClose={() => setDocumentId(null)} />}
+
+        {/* AI assistant (hidden until the database is set up) */}
+        {!setupNeeded && <AssistantWidget />}
 
         {toast && (
           <div className="toast" role="status" key={toast.at}>
