@@ -1,7 +1,7 @@
 import { supabase } from '../lib/supabase';
 
 // Sends the chat to the StockSense assistant at /api/assistant (the dev server locally,
-// the Vercel Function in api/assistant.js when hosted).
+// the Vercel Function in frontend/api/assistant.js when hosted).
 // The user's own session token goes along so the assistant reads data with their permissions.
 export async function askAssistant(messages, warehouseId) {
   const { data } = await supabase.auth.getSession();
