@@ -1,0 +1,97 @@
+/* Dashboard Grid & Layout Styles */
+
+.dashboard-container {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* Two Column Chart Section (Activity + Stock Movement) */
+.charts-grid-two-col {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 20px;
+}
+
+/* Secondary Row (Category Donut + Fast Moving Products) */
+.charts-grid-secondary {
+  display: grid;
+  grid-template-columns: 1fr 1.3fr;
+  gap: 20px;
+}
+
+/* Full Width Performance Row */
+.chart-full-width {
+  width: 100%;
+}
+
+/* Operations Table Section */
+.operations-section {
+  width: 100%;
+}
+
+/* Interactive elements in cards */
+.timeframe-select-pill {
+  display: flex;
+  background-color: var(--bg-canvas);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 2px;
+}
+
+.timeframe-pill-btn {
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 500;
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  transition: all 0.15s ease;
+}
+
+.timeframe-pill-btn.active {
+  background-color: #ffffff;
+  color: var(--text-primary);
+  font-weight: 600;
+  box-shadow: var(--shadow-xs);
+}
+
+.chart-legend-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  color: var(--text-secondary);
+}
+
+.legend-indicator {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+}
+
+.legend-indicator.circle {
+  border-radius: var(--radius-full);
+}
+
+/* Responsive Dashboard Breakpoints */
+@media (max-width: 1200px) {
+  .charts-grid-two-col {
+    grid-template-columns: 1fr;
+  }
+  .charts-grid-secondary {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .dashboard-container {
+    gap: 16px;
+  }
+}

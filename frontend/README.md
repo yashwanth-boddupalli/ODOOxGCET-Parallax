@@ -1,12 +1,25 @@
-# Frontend
+# StockSense Frontend
 
-This directory will contain the user-facing application built with **React** and **Vite**.
+User-facing inventory operations dashboard built with **React** and **Vite** for the Odoo × GCET Hyderabad Hackathon.
 
-## Planned Contents
+## Architecture
 
-- UI components and pages
-- Client-side routing
-- State management
-- API integration layer
+```
+frontend/
+├── src/
+│   ├── components/
+│   │   ├── common/      # Reusable UI elements (KpiCard, DataTable, StatusBadge, EmptyState, PageHeader)
+│   │   └── layout/      # Shell architecture (Sidebar, TopHeader, AppLayout)
+│   ├── charts/          # Custom SVG visualizations (Activity, StockMovement, Categories, FastMoving, Performance)
+│   ├── pages/           # Application route pages (Dashboard, Products, Receipts, Deliveries, etc.)
+│   ├── data/            # Structured mock datasets (KPIs, Charts, Operations, Products, Warehouses)
+│   ├── styles/          # Vanilla CSS design system (tokens, layout, components, dashboard, charts)
+│   ├── App.jsx          # Route configuration
+│   └── main.jsx         # Entry point
+```
 
-> Development begins in **Phase 2**.
+## Available Scripts
+
+- `npm run dev` — Starts local development server on `http://localhost:5173/`
+- `npm run build` — Compiles production bundle
+- `npm run lint` — Runs Oxlint verification
