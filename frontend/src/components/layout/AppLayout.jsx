@@ -1,277 +1,154 @@
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Outlet } from 'react-router-dom';
+import { AlertTriangle, CheckCircle2, DatabaseZap } from 'lucide-react';
 import { Sidebar } from './Sidebar';
 import { TopHeader } from './TopHeader';
-import { X, CheckCircle2, Box } from 'lucide-react';
+import { ProductFormModal } from '../forms/ProductFormModal';
+import { OperationFormModal } from '../forms/OperationFormModal';
+import { OperationDrawer } from '../forms/OperationDrawer';
+import { WarehouseFormModal } from '../forms/WarehouseFormModal';
+import { WorkspaceContext, useAsync } from '../../app/useWorkspace';
+import { useAuth } from '../../auth/useAuth';
+import { getDashboardSummary, getSettings, listWarehouses } from '../../api';
+
+const WAREHOUSE_KEY = 'stocksense.activeWarehouse';
+
+const readStoredWarehouse = () => {
+  try {
+    return localStorage.getItem(WAREHOUSE_KEY) || '';
+  } catch {
+    return '';
+  }
+};
+
+// The database hasn't been created in this Supabase project yet.
+const isMissingSchema = (error) =>
+  Boolean(error) && /schema cache|does not exist|PGRST20[25]|42P01/i.test(`${error.code} ${error.message}`);
 
 export const AppLayout = () => {
+  const { profile, isManager } = useAuth();
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [showAddProductModal, setShowAddProductModal] = useState(false);
-  const [toastMessage, setToastMessage] = useState(null);
 
-  // Quick product form mock state
-  const [productForm, setProductForm] = useState({
-    name: '',
-    sku: '',
-    category: 'Electronics',
-    initialStock: '50',
-    warehouse: 'Main Central Hub'
-  });
+  // Bumping `version` tells every page to reload its data after a change.
+  const [version, setVersion] = useState(0);
+  const refresh = useCallback(() => setVersion((v) => v + 1), []);
 
-  const handleToggleSidebar = () => {
-    setIsSidebarCollapsed(!isSidebarCollapsed);
-  };
+  const [warehouseId, setWarehouseIdState] = useState(readStoredWarehouse);
+  const setWarehouseId = useCallback((id) => {
+    const next = id ? String(id) : '';
+    setWarehouseIdState(next);
+    try {
+      localStorage.setItem(WAREHOUSE_KEY, next);
+    } catch {
+      // Storage can be blocked (private mode); the choice then lasts for this visit only.
+    }
+  }, []);
 
-  const handleAddProductSubmit = (e) => {
-    e.preventDefault();
-    setShowAddProductModal(false);
-    setToastMessage(`Product "${productForm.name || 'New Item'}" added to mock catalog.`);
-    setTimeout(() => setToastMessage(null), 3500);
-    setProductForm({
-      name: '',
-      sku: '',
-      category: 'Electronics',
-      initialStock: '50',
-      warehouse: 'Main Central Hub'
-    });
-  };
+  const warehouses = useAsync(listWarehouses, [version]);
+  const settings = useAsync(getSettings, [version]);
+  const summary = useAsync(() => getDashboardSummary(warehouseId), [version, warehouseId]);
+
+  const [toast, setToast] = useState(null);
+  const notify = useCallback((message, kind = 'success') => setToast({ message, kind, at: Date.now() }), []);
+  useEffect(() => {
+    if (!toast) return undefined;
+    const timer = setTimeout(() => setToast(null), 4000);
+    return () => clearTimeout(timer);
+  }, [toast]);
+
+  // One modal at a time; the document drawer can sit on top of a page.
+  const [modal, setModal] = useState(null);
+  const [documentId, setDocumentId] = useState(null);
+  const closeModal = useCallback(() => setModal(null), []);
+
+  const warehouseList = useMemo(() => warehouses.data || [], [warehouses.data]);
+  // Forget a stored warehouse that no longer exists.
+  const activeWarehouseId = warehouseList.some((w) => String(w.id) === warehouseId) ? warehouseId : '';
+
+  const value = useMemo(() => ({
+    warehouses: warehouseList,
+    warehouseId: activeWarehouseId,
+    activeWarehouse: warehouseList.find((w) => String(w.id) === activeWarehouseId) || null,
+    setWarehouseId,
+    settings: settings.data || null,
+    summary: summary.data || null,
+    profile,
+    isManager,
+    version,
+    refresh,
+    notify,
+    openAddProduct: () => setModal({ kind: 'product' }),
+    openCreateOperation: (type) => setModal({ kind: 'operation', type }),
+    openAddWarehouse: () => setModal({ kind: 'warehouse', mode: 'warehouse' }),
+    openAddLocation: (warehouse) => setModal({ kind: 'warehouse', mode: 'location', warehouse }),
+    openOperation: (id) => setDocumentId(id),
+  }), [warehouseList, activeWarehouseId, setWarehouseId, settings.data, summary.data, profile, isManager, version, refresh, notify]);
+
+  const setupNeeded = isMissingSchema(warehouses.error) || isMissingSchema(settings.error);
 
   return (
-    <div className="app-shell">
-      {/* Mobile Backdrop */}
-      <div 
-        className={`mobile-overlay ${isMobileMenuOpen ? 'active' : ''}`}
-        onClick={() => setIsMobileMenuOpen(false)}
-      />
-
-      {/* Sidebar */}
-      <Sidebar 
-        isCollapsed={isSidebarCollapsed}
-        onToggleCollapse={handleToggleSidebar}
-        isMobileOpen={isMobileMenuOpen}
-        onCloseMobile={() => setIsMobileMenuOpen(false)}
-      />
-
-      {/* Main Content Area */}
-      <div className={`app-main ${isSidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
-        <TopHeader 
-          onOpenMobileMenu={() => setIsMobileMenuOpen(true)}
-          onAddProductClick={() => setShowAddProductModal(true)}
+    <WorkspaceContext.Provider value={value}>
+      <div className="app-shell">
+        <div
+          className={`mobile-overlay ${isMobileMenuOpen ? 'active' : ''}`}
+          onClick={() => setIsMobileMenuOpen(false)}
         />
 
-        <main className="page-viewport">
-          <Outlet context={{ onOpenAddProduct: () => setShowAddProductModal(true) }} />
-        </main>
-      </div>
+        <Sidebar
+          isCollapsed={isSidebarCollapsed}
+          onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+          isMobileOpen={isMobileMenuOpen}
+          onCloseMobile={() => setIsMobileMenuOpen(false)}
+        />
 
-      {/* Add Product Modal (UI Demonstration) */}
-      {showAddProductModal && (
-        <div style={{
-          position: 'fixed',
-          inset: 0,
-          backgroundColor: 'rgba(15, 23, 42, 0.5)',
-          backdropFilter: 'blur(3px)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 100,
-          padding: '20px'
-        }}>
-          <div style={{
-            backgroundColor: '#ffffff',
-            borderRadius: 'var(--radius-lg)',
-            width: '100%',
-            maxWidth: '520px',
-            boxShadow: 'var(--shadow-dropdown)',
-            overflow: 'hidden',
-            border: '1px solid var(--border-subtle)'
-          }}>
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              padding: '18px 22px',
-              borderBottom: '1px solid var(--border-subtle)'
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <div style={{
-                  width: '32px',
-                  height: '32px',
-                  borderRadius: 'var(--radius-md)',
-                  backgroundColor: 'var(--primary-light)',
-                  color: 'var(--primary)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center'
-                }}>
-                  <Box size={18} />
-                </div>
-                <h3 style={{ fontSize: '16px', fontWeight: 700 }}>Add New Product (Mock)</h3>
-              </div>
-              <button 
-                onClick={() => setShowAddProductModal(false)}
-                style={{ color: 'var(--text-muted)', padding: '4px' }}
-              >
-                <X size={18} />
-              </button>
-            </div>
+        <div className={`app-main ${isSidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
+          <TopHeader onOpenMobileMenu={() => setIsMobileMenuOpen(true)} />
 
-            <form onSubmit={handleAddProductSubmit} style={{ padding: '22px' }}>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <main className="page-viewport">
+            {setupNeeded && (
+              <div className="setup-banner" role="alert">
+                <DatabaseZap size={22} />
                 <div>
-                  <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, marginBottom: '6px' }}>
-                    Product Name
-                  </label>
-                  <input 
-                    type="text"
-                    required
-                    placeholder="e.g. Wireless Barcode Scanner 2.4G"
-                    value={productForm.name}
-                    onChange={(e) => setProductForm({ ...productForm, name: e.target.value })}
-                    style={{
-                      width: '100%',
-                      padding: '8px 12px',
-                      borderRadius: 'var(--radius-md)',
-                      border: '1px solid var(--border-subtle)',
-                      fontSize: '13.5px'
-                    }}
-                  />
-                </div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                  <div>
-                    <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, marginBottom: '6px' }}>
-                      SKU Code
-                    </label>
-                    <input 
-                      type="text"
-                      placeholder="e.g. ELC-SC-901"
-                      value={productForm.sku}
-                      onChange={(e) => setProductForm({ ...productForm, sku: e.target.value })}
-                      style={{
-                        width: '100%',
-                        padding: '8px 12px',
-                        borderRadius: 'var(--radius-md)',
-                        border: '1px solid var(--border-subtle)',
-                        fontSize: '13.5px'
-                      }}
-                    />
-                  </div>
-
-                  <div>
-                    <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, marginBottom: '6px' }}>
-                      Category
-                    </label>
-                    <select
-                      value={productForm.category}
-                      onChange={(e) => setProductForm({ ...productForm, category: e.target.value })}
-                      style={{
-                        width: '100%',
-                        padding: '8px 12px',
-                        borderRadius: 'var(--radius-md)',
-                        border: '1px solid var(--border-subtle)',
-                        fontSize: '13.5px',
-                        background: '#ffffff'
-                      }}
-                    >
-                      <option>Electronics</option>
-                      <option>Apparel</option>
-                      <option>Industrial</option>
-                      <option>Accessories</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                  <div>
-                    <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, marginBottom: '6px' }}>
-                      Initial Stock Units
-                    </label>
-                    <input 
-                      type="number"
-                      value={productForm.initialStock}
-                      onChange={(e) => setProductForm({ ...productForm, initialStock: e.target.value })}
-                      style={{
-                        width: '100%',
-                        padding: '8px 12px',
-                        borderRadius: 'var(--radius-md)',
-                        border: '1px solid var(--border-subtle)',
-                        fontSize: '13.5px'
-                      }}
-                    />
-                  </div>
-
-                  <div>
-                    <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, marginBottom: '6px' }}>
-                      Target Warehouse
-                    </label>
-                    <select
-                      value={productForm.warehouse}
-                      onChange={(e) => setProductForm({ ...productForm, warehouse: e.target.value })}
-                      style={{
-                        width: '100%',
-                        padding: '8px 12px',
-                        borderRadius: 'var(--radius-md)',
-                        border: '1px solid var(--border-subtle)',
-                        fontSize: '13.5px',
-                        background: '#ffffff'
-                      }}
-                    >
-                      <option>Main Central Hub</option>
-                      <option>North Logistics Depot</option>
-                      <option>South Fulfillment Center</option>
-                      <option>West Coast Facility</option>
-                    </select>
-                  </div>
+                  <h4>The StockSense database isn’t set up in this Supabase project yet</h4>
+                  <p>
+                    Open the Supabase dashboard → SQL Editor, paste <code>supabase/setup.sql</code> from the repo and run
+                    it once. Then refresh this page.
+                  </p>
                 </div>
               </div>
-
-              <div style={{
-                marginTop: '24px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'flex-end',
-                gap: '10px'
-              }}>
-                <button 
-                  type="button" 
-                  className="btn btn-secondary"
-                  onClick={() => setShowAddProductModal(false)}
-                >
-                  Cancel
-                </button>
-                <button type="submit" className="btn btn-primary">
-                  Save Product (Local Mock)
-                </button>
+            )}
+            {!setupNeeded && profile && !profile.active && (
+              <div className="setup-banner" role="alert">
+                <AlertTriangle size={22} />
+                <div>
+                  <h4>Your account is deactivated</h4>
+                  <p>Ask an inventory manager to re-activate it in Settings → Team &amp; Access.</p>
+                </div>
               </div>
-            </form>
+            )}
+            <Outlet context={{ onOpenAddProduct: value.openAddProduct }} />
+          </main>
+        </div>
+
+        {modal?.kind === 'product' && <ProductFormModal onClose={closeModal} />}
+        {modal?.kind === 'operation' && <OperationFormModal type={modal.type} onClose={closeModal} />}
+        {modal?.kind === 'warehouse' && (
+          <WarehouseFormModal mode={modal.mode} warehouse={modal.warehouse} onClose={closeModal} />
+        )}
+        {documentId && <OperationDrawer documentId={documentId} onClose={() => setDocumentId(null)} />}
+
+        {toast && (
+          <div className="toast" role="status" key={toast.at}>
+            {toast.kind === 'error' ? (
+              <AlertTriangle size={18} color="#fb7185" />
+            ) : (
+              <CheckCircle2 size={18} color="#10b981" />
+            )}
+            <span>{toast.message}</span>
           </div>
-        </div>
-      )}
-
-      {/* Floating Feedback Notification */}
-      {toastMessage && (
-        <div style={{
-          position: 'fixed',
-          bottom: '24px',
-          right: '24px',
-          backgroundColor: '#0f172a',
-          color: '#ffffff',
-          padding: '12px 18px',
-          borderRadius: 'var(--radius-md)',
-          boxShadow: 'var(--shadow-dropdown)',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '10px',
-          fontSize: '13.5px',
-          zIndex: 110,
-          animation: 'fadeIn 0.2s ease'
-        }}>
-          <CheckCircle2 size={18} color="#10b981" />
-          <span>{toastMessage}</span>
-        </div>
-      )}
-    </div>
+        )}
+      </div>
+    </WorkspaceContext.Provider>
   );
 };

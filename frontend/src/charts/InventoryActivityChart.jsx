@@ -1,9 +1,13 @@
-import React, { useState } from 'react';
-import { mockActivityData } from '../data/mockCharts';
+import React from 'react';
+import { formatQty, formatSignedQty } from '../lib/format';
 
-export const InventoryActivityChart = () => {
-  const [viewMode, setViewMode] = useState('7d');
-  const maxVal = 250; // Reference maximum for 100% height calculation
+// data: [{ day, inbound, outbound, total }] from dashboard_activity
+export const InventoryActivityChart = ({ data = [], range = '7d', onRangeChange, loading = false }) => {
+  // Scale bars to the busiest day so real volumes always fit.
+  const maxVal = Math.max(1, ...data.flatMap((d) => [d.inbound, d.outbound])) * 1.1;
+  const dense = data.length > 10;
+  const totalIn = data.reduce((sum, d) => sum + d.inbound, 0);
+  const totalOut = data.reduce((sum, d) => sum + d.outbound, 0);
 
   return (
     <div className="content-card">
@@ -26,15 +30,15 @@ export const InventoryActivityChart = () => {
           </div>
 
           <div className="timeframe-select-pill">
-            <button 
-              className={`timeframe-pill-btn ${viewMode === '7d' ? 'active' : ''}`}
-              onClick={() => setViewMode('7d')}
+            <button
+              className={`timeframe-pill-btn ${range === '7d' ? 'active' : ''}`}
+              onClick={() => onRangeChange?.('7d')}
             >
               7 Days
             </button>
-            <button 
-              className={`timeframe-pill-btn ${viewMode === '30d' ? 'active' : ''}`}
-              onClick={() => setViewMode('30d')}
+            <button
+              className={`timeframe-pill-btn ${range === '30d' ? 'active' : ''}`}
+              onClick={() => onRangeChange?.('30d')}
             >
               30 Days
             </button>
@@ -43,42 +47,48 @@ export const InventoryActivityChart = () => {
       </div>
 
       <div className="card-body">
-        <div className="activity-bars-group">
-          {mockActivityData.map((item) => {
-            const inboundHeight = Math.round((item.inbound / maxVal) * 170);
-            const outboundHeight = Math.round((item.outbound / maxVal) * 170);
+        {data.length === 0 ? (
+          <div className="chart-empty">{loading ? 'Loading activity…' : 'No receipts or deliveries yet.'}</div>
+        ) : (
+          <div className={`activity-bars-group ${dense ? 'dense' : ''}`}>
+            {data.map((item, index) => {
+              const inboundHeight = Math.round((item.inbound / maxVal) * 170);
+              const outboundHeight = Math.round((item.outbound / maxVal) * 170);
+              // In the 30-day view, label every 5th day (counting back from today).
+              const showLabel = !dense || (data.length - 1 - index) % 5 === 0;
 
-            return (
-              <div key={item.day} className="activity-day-col">
-                <div className="bars-pair">
-                  {/* Inbound Bar */}
-                  <div 
-                    className="bar-pillar inbound" 
-                    style={{ height: `${inboundHeight}px` }}
-                    aria-label={`${item.day} Inbound: ${item.inbound} units`}
-                  >
-                    <div className="bar-tooltip">
-                      Inbound: +{item.inbound}
+              return (
+                <div key={item.date || item.day} className="activity-day-col">
+                  <div className="bars-pair">
+                    {/* Inbound Bar */}
+                    <div
+                      className="bar-pillar inbound"
+                      style={{ height: `${inboundHeight}px` }}
+                      aria-label={`${item.day} Inbound: ${item.inbound} units`}
+                    >
+                      <div className="bar-tooltip">
+                        {item.day} in: +{formatQty(item.inbound)}
+                      </div>
+                    </div>
+
+                    {/* Outbound Bar */}
+                    <div
+                      className="bar-pillar outbound"
+                      style={{ height: `${outboundHeight}px` }}
+                      aria-label={`${item.day} Outbound: ${item.outbound} units`}
+                    >
+                      <div className="bar-tooltip">
+                        {item.day} out: -{formatQty(item.outbound)}
+                      </div>
                     </div>
                   </div>
 
-                  {/* Outbound Bar */}
-                  <div 
-                    className="bar-pillar outbound" 
-                    style={{ height: `${outboundHeight}px` }}
-                    aria-label={`${item.day} Outbound: ${item.outbound} units`}
-                  >
-                    <div className="bar-tooltip">
-                      Outbound: -{item.outbound}
-                    </div>
-                  </div>
+                  <span className={`day-label ${showLabel ? '' : 'hidden'}`}>{item.day}</span>
                 </div>
-
-                <span className="day-label">{item.day}</span>
-              </div>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
+        )}
 
         {/* Supporting Summary Banner */}
         <div style={{
@@ -87,16 +97,18 @@ export const InventoryActivityChart = () => {
           justifyContent: 'space-between',
           paddingTop: '16px',
           fontSize: '12.5px',
-          color: 'var(--text-secondary)'
+          color: 'var(--text-secondary)',
+          gap: '12px',
+          flexWrap: 'wrap'
         }}>
           <div>
-            Total Inbound: <strong style={{ color: '#2563eb' }}>935 units</strong>
+            Total Inbound: <strong style={{ color: '#2563eb' }}>{formatQty(totalIn)} units</strong>
           </div>
           <div>
-            Total Outbound: <strong style={{ color: '#059669' }}>820 units</strong>
+            Total Outbound: <strong style={{ color: '#059669' }}>{formatQty(totalOut)} units</strong>
           </div>
           <div>
-            Net Inventory Gain: <strong style={{ color: 'var(--text-primary)' }}>+115 units</strong>
+            Net Inventory Change: <strong style={{ color: 'var(--text-primary)' }}>{formatSignedQty(totalIn - totalOut)} units</strong>
           </div>
         </div>
       </div>

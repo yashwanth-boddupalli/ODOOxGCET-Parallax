@@ -1,8 +1,9 @@
 import React from 'react';
-import { mockFastMovingProducts } from '../data/mockCharts';
 import { Flame } from 'lucide-react';
+import { formatQty } from '../lib/format';
 
-export const FastMovingProducts = () => {
+// data: [{ id, name, sku, velocity: "94%", unitsMoved, stockLevel, trend }] from dashboard_fast_moving
+export const FastMovingProducts = ({ data = [], loading = false }) => {
   return (
     <div className="content-card">
       <div className="card-header">
@@ -24,49 +25,48 @@ export const FastMovingProducts = () => {
               High Velocity
             </span>
           </div>
-          <span className="card-subtitle">Highest inventory dispatch velocity over past 30 days</span>
+          <span className="card-subtitle">Most units shipped in the past 30 days · velocity = share of stock sold through</span>
         </div>
       </div>
 
       <div className="card-body">
-        <div className="fast-moving-list">
-          {mockFastMovingProducts.map((prod, index) => (
-            <div key={prod.id} className="fast-product-card">
-              <div className="fast-product-left">
-                <span className={`product-rank ${index < 3 ? `top-${index + 1}` : ''}`}>
-                  {index + 1}
-                </span>
-
-                <div className="product-details">
-                  <span className="product-title">{prod.name}</span>
-                  <div className="product-sub-meta">
-                    <span style={{ fontFamily: 'var(--font-mono)' }}>{prod.sku}</span>
-                    <span>•</span>
-                    <span>In Stock: <strong>{prod.stockLevel}</strong></span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="fast-product-right">
-                <div className="velocity-bar-group">
-                  <div className="velocity-track">
-                    <div 
-                      className="velocity-fill" 
-                      style={{ width: prod.velocity }}
-                    />
-                  </div>
-                  <span className="velocity-label">
-                    {prod.velocity} velocity ({prod.unitsMoved} units)
+        {data.length === 0 ? (
+          <div className="chart-empty">{loading ? 'Loading…' : 'No deliveries in the last 30 days.'}</div>
+        ) : (
+          <div className="fast-moving-list">
+            {data.map((prod, index) => (
+              <div key={prod.id} className="fast-product-card">
+                <div className="fast-product-left">
+                  <span className={`product-rank ${index < 3 ? `top-${index + 1}` : ''}`}>
+                    {index + 1}
                   </span>
+
+                  <div className="product-details">
+                    <span className="product-title">{prod.name}</span>
+                    <div className="product-sub-meta">
+                      <span style={{ fontFamily: 'var(--font-mono)' }}>{prod.sku}</span>
+                      <span>•</span>
+                      <span>In Stock: <strong>{formatQty(prod.stockLevel)}</strong></span>
+                    </div>
+                  </div>
                 </div>
 
-                <span className="product-turnover-tag">
-                  {prod.trend}
-                </span>
+                <div className="fast-product-right">
+                  <div className="velocity-bar-group">
+                    <div className="velocity-track">
+                      <div className="velocity-fill" style={{ width: prod.velocity }} />
+                    </div>
+                    <span className="velocity-label">
+                      {prod.velocity} velocity ({formatQty(prod.unitsMoved)} units)
+                    </span>
+                  </div>
+
+                  <span className="product-turnover-tag">{prod.trend}</span>
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
