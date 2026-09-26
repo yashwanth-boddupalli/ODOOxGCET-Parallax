@@ -7,7 +7,7 @@ Once Supabase was chosen and the frontend was wired to it, most were fixed. This
 
 | ID | Area | Issue | Suggested next step |
 |---|---|---|---|
-| O-1 | Deployment | Done: the schema and seed are applied to the hosted project, and the Vercel URL is in the Auth redirect list. | — |
+| O-1 | Deployment | The app now uses the StockSense project `jfbrettpstcrbdjvcpkb` (schema + seed applied, confirm-email off, redirect URLs for localhost:5173/5174). | When the app has its own Vercel URL, add it to Supabase → Authentication → URL Configuration (Site URL + `https://…/**`). |
 | O-2 | Auth emails | The built-in Supabase sender uses a fixed template (reset **link** only, no code), delivers only to organization members, and is rate-limited. | Add custom SMTP for real users; optionally add `{{ .Token }}` to the reset template. |
 | O-3 | Scale | Tables fetch up to 1,000 rows and paginate on the client. | Move search, filters and paging into the query (`range()` + `count`) once history grows. |
 | O-4 | Analytics | GMROI needs a cost price, which isn't stored, so it shows "n/a". | Add `cost_price` to products if margin reporting matters. |

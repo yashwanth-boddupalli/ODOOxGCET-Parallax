@@ -99,7 +99,7 @@ npm install
 npm run dev        # http://localhost:5173
 ```
 
-The app already points at the team's Supabase project. To use another one, copy `frontend/.env.example` to
+The app already points at the StockSense Supabase project (`jfbrettpstcrbdjvcpkb`). To use another one, copy `frontend/.env.example` to
 `frontend/.env` and fill in that project's URL and **publishable** key.
 
 The **first person to sign up becomes the manager**. Later sign-ups join as staff; a manager can change roles in
