@@ -9,9 +9,11 @@
 ```
 StockSense/
 ├── frontend/    → User-facing application (React + Vite)
-├── backend/     → Server-side logic and API layer
-├── database/    → Schema definitions and migration scripts
+├── supabase/    → Backend: Postgres schema, security, stock engine, seed, tests
+├── backend/     → Pointer to supabase/ (there is no separate server)
+├── database/    → Pointer to supabase/
 ├── docs/        → Project documentation and workflow guides
+├── vercel.json  → Vercel build + single-page-app routing
 ├── .gitignore
 ├── .env.example → Environment variable template (no secrets)
 └── README.md
@@ -20,8 +22,7 @@ StockSense/
 | Directory    | Purpose                                                |
 | ------------ | ------------------------------------------------------ |
 | `frontend/`  | UI components, pages, routing, and client-side state   |
-| `backend/`   | API endpoints, business logic, and server utilities    |
-| `database/`  | Table schemas, seed data, and migration files          |
+| `supabase/`  | Tables, Row Level Security, stock engine functions, dashboard queries, seed data, tests |
 | `docs/`      | Git workflow guide, project plan, and design documents |
 
 ---
@@ -45,8 +46,10 @@ StockSense/
 
 ## Development Status
 
-> **Phase 1 — Repository Setup** ✅  
-> The project is currently in the initial setup phase. Features and modules will be developed incrementally across subsequent phases. See [`docs/PROJECT_PLAN.md`](docs/PROJECT_PLAN.md) for the full roadmap.
+> **Frontend + Supabase backend** ✅  
+> Every page reads live data from Supabase. Sign-in, operations (receipts, deliveries, transfers, adjustments), the
+> stock ledger, low-stock reordering, analytics and settings are all connected. See
+> [`supabase/README.md`](supabase/README.md) for how the database works and [`docs/`](docs/) for the design notes.
 
 ---
 
@@ -76,6 +79,43 @@ cp .env.example .env
 
 # 3. Start developing on a feature branch
 git checkout -b feature/your-feature-name
+```
+
+---
+
+## Running StockSense
+
+### 1. Database (once per Supabase project)
+
+Open the Supabase dashboard → **SQL Editor**, paste [`supabase/setup.sql`](supabase/setup.sql) and run it. Then set
+the Auth URL configuration and the reset-email template as described in
+[`supabase/README.md`](supabase/README.md#1-set-up-a-new-supabase-project-about-5-minutes).
+
+### 2. Frontend (local)
+
+```bash
+cd frontend
+npm install
+npm run dev        # http://localhost:5173
+```
+
+The app already points at the team's Supabase project. To use another one, copy `frontend/.env.example` to
+`frontend/.env` and fill in that project's URL and **publishable** key.
+
+The **first person to sign up becomes the manager**. Later sign-ups join as staff; a manager can change roles in
+*Settings → Team & Access*.
+
+### 3. Deploy (Vercel)
+
+Import the repository in Vercel and leave **Root Directory** as the repo root. `vercel.json` builds `frontend/`
+and serves it as a single-page app. No environment variables are needed. Afterwards, add the deployed URL in
+Supabase → Authentication → URL Configuration.
+
+### Tests
+
+```bash
+cd supabase/tests && npm install && npm test    # database: 33 tests
+cd frontend && npm run lint && npm run build    # frontend: lint + production build
 ```
 
 ---
