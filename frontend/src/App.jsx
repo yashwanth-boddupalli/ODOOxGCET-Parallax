@@ -74,3 +74,4 @@ export function App() {
 }
 
 export default App;
+// this is design and this is frontend part
