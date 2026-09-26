@@ -107,9 +107,11 @@ The **first person to sign up becomes the manager**. Later sign-ups join as staf
 
 ### 3. Deploy (Vercel)
 
-Import the repository in Vercel and leave **Root Directory** as the repo root. `vercel.json` builds `frontend/`
-and serves it as a single-page app. No environment variables are needed. Afterwards, add the deployed URL in
-Supabase → Authentication → URL Configuration.
+Import the repository in Vercel. Either Root Directory setting works: with the repo root, `vercel.json` builds
+`frontend/`; with `frontend`, `frontend/vercel.json` applies. Both send every path to `index.html`, so links like
+`/reset-password` work. No environment variables are needed. Add the deployed URL in Supabase → Authentication →
+URL Configuration. Vercel deploys production from the production branch (usually `main`), so merge `develop` to
+release.
 
 ### Tests
 

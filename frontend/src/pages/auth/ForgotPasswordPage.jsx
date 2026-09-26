@@ -1,13 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { ArrowLeft, KeyRound, Lock, Mail } from 'lucide-react';
+import { ArrowLeft, KeyRound, Lock, Mail, MailCheck } from 'lucide-react';
 import { AuthLayout } from '../../auth/AuthLayout';
 import { useAuth } from '../../auth/useAuth';
 import { Alert, Field, IconInput, PasswordInput, StrengthMeter, SubmitButton } from '../../components/common/FormControls';
 
 const RESEND_SECONDS = 60;
 
-// Two steps: 1) email -> we send a one-time code, 2) code + new password.
+// Two steps: 1) email -> Supabase sends a reset email, 2) the person clicks the link in it
+// (lands on /reset-password). If the email template also shows a code, it can be typed here instead.
 export const ForgotPasswordPage = () => {
   const { requestPasswordReset, verifyResetCode, updatePassword } = useAuth();
   const navigate = useNavigate();
@@ -21,6 +22,7 @@ export const ForgotPasswordPage = () => {
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
   const [cooldown, setCooldown] = useState(0);
+  const [showCode, setShowCode] = useState(false);
 
   useEffect(() => {
     if (cooldown <= 0) return undefined;
@@ -37,7 +39,7 @@ export const ForgotPasswordPage = () => {
       setStep(2);
       setCooldown(RESEND_SECONDS);
       // Same message whether or not the account exists, so emails can't be probed.
-      setNotice(`If ${email.trim()} has an account, a reset code is on its way.`);
+      setNotice(`If ${email.trim()} has an account, a reset email is on its way.`);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -76,7 +78,7 @@ export const ForgotPasswordPage = () => {
       {step === 1 ? (
         <>
           <h1 className="auth-title">Reset your password</h1>
-          <p className="auth-subtitle">Enter your account email and we’ll send you a one-time code.</p>
+          <p className="auth-subtitle">Enter your account email and we’ll send you a link to choose a new password.</p>
           <form className="auth-form form-grid" onSubmit={sendCode} noValidate>
             <Alert kind="error">{error}</Alert>
             <Field label="Email" htmlFor="fp-email">
@@ -84,49 +86,58 @@ export const ForgotPasswordPage = () => {
                 value={email} onChange={(e) => setEmail(e.target.value)} autoFocus />
             </Field>
             <SubmitButton busy={busy} busyText="Sending…" disabled={!email.trim()}>
-              Send reset code
+              Send reset link
             </SubmitButton>
           </form>
         </>
       ) : (
         <>
-          <h1 className="auth-title">Enter your code</h1>
+          <div className="auth-state-icon info">
+            <MailCheck size={26} />
+          </div>
+          <h1 className="auth-title">Check your email</h1>
           <p className="auth-subtitle">
-            Check <strong>{email.trim()}</strong> for the code, then choose a new password. You can also just click
-            the link in that email.
+            {notice || `We sent a reset link to ${email.trim()}.`} Open the link in this browser to choose a new
+            password. It works once and expires after a while.
           </p>
-          <form className="auth-form form-grid" onSubmit={resetPassword} noValidate>
-            <Alert kind="info">{!error && notice}</Alert>
-            <Alert kind="error">{error}</Alert>
-            <Field
-              label="Verification code"
-              htmlFor="fp-code"
-              aside={
-                <button type="button" className="link-button" onClick={sendCode} disabled={cooldown > 0 || busy}>
-                  {cooldown > 0 ? `Resend in ${cooldown}s` : 'Resend code'}
-                </button>
-              }
-            >
-              <IconInput id="fp-code" icon={KeyRound} className="code-input" inputMode="numeric"
-                autoComplete="one-time-code" placeholder="••••••" maxLength={8}
-                value={code} onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))} autoFocus />
-            </Field>
-            <Field label="New password" htmlFor="fp-password">
-              <PasswordInput id="fp-password" icon={Lock} autoComplete="new-password" placeholder="Create a new password"
-                value={password} onChange={(e) => setPassword(e.target.value)} />
-              <StrengthMeter password={password} />
-            </Field>
-            <Field label="Confirm new password" htmlFor="fp-confirm">
-              <PasswordInput id="fp-confirm" icon={Lock} autoComplete="new-password" placeholder="Type it again"
-                value={confirm} onChange={(e) => setConfirm(e.target.value)} />
-            </Field>
-            <SubmitButton busy={busy} busyText="Updating…" disabled={code.length < 6 || !password}>
-              Update password
-            </SubmitButton>
-            <button type="button" className="btn btn-secondary btn-block" onClick={() => { setStep(1); setError(''); }}>
+
+          <div className="auth-form form-grid">
+            <Alert kind="error">{!showCode && error}</Alert>
+            <button type="button" className="btn btn-secondary btn-block" onClick={sendCode} disabled={cooldown > 0 || busy}>
+              {cooldown > 0 ? `Didn’t get it? Resend in ${cooldown}s` : 'Didn’t get it? Resend email'}
+            </button>
+            <button type="button" className="btn btn-secondary btn-block" onClick={() => { setStep(1); setError(''); setShowCode(false); }}>
               Use a different email
             </button>
-          </form>
+            {!showCode && (
+              <button type="button" className="link-button" style={{ alignSelf: 'center' }} onClick={() => setShowCode(true)}>
+                Got a 6-digit code instead?
+              </button>
+            )}
+          </div>
+
+          {showCode && (
+            <form className="auth-form form-grid" onSubmit={resetPassword} noValidate>
+              <Alert kind="error">{error}</Alert>
+              <Field label="Verification code" htmlFor="fp-code">
+                <IconInput id="fp-code" icon={KeyRound} className="code-input" inputMode="numeric"
+                  autoComplete="one-time-code" placeholder="••••••" maxLength={8}
+                  value={code} onChange={(e) => setCode(e.target.value.replace(/D/g, ''))} autoFocus />
+              </Field>
+              <Field label="New password" htmlFor="fp-password">
+                <PasswordInput id="fp-password" icon={Lock} autoComplete="new-password" placeholder="Create a new password"
+                  value={password} onChange={(e) => setPassword(e.target.value)} />
+                <StrengthMeter password={password} />
+              </Field>
+              <Field label="Confirm new password" htmlFor="fp-confirm">
+                <PasswordInput id="fp-confirm" icon={Lock} autoComplete="new-password" placeholder="Type it again"
+                  value={confirm} onChange={(e) => setConfirm(e.target.value)} />
+              </Field>
+              <SubmitButton busy={busy} busyText="Updating…" disabled={code.length < 6 || !password}>
+                Update password
+              </SubmitButton>
+            </form>
+          )}
         </>
       )}
     </AuthLayout>

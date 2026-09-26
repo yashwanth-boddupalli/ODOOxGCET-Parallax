@@ -23,14 +23,13 @@ supabase/
    - *Site URL*: your Vercel URL, e.g. `https://stocksense.vercel.app`
    - *Redirect URLs*: add `https://stocksense.vercel.app/**` and `http://localhost:5173/**`
    Without this, confirmation and reset emails link to the wrong place.
-3. **Show the reset code in the email.** Go to **Authentication → Emails → Reset Password**. Make sure the
-   template contains `{{ .Token }}`, so people can type the 6-digit code on the Forgot Password page.
-   The link (`{{ .ConfirmationURL }}`) keeps working too. For example:
-   ```html
-   <h2>Reset your StockSense password</h2>
-   <p>Your code is <strong>{{ .Token }}</strong> (valid for a short time, one use).</p>
-   <p>Or <a href="{{ .ConfirmationURL }}">click here to choose a new password</a>.</p>
-   ```
+3. **Password reset emails.** Supabase's built-in email sender uses a fixed template that contains a **link**.
+   People click it and land on `/reset-password` to choose a new password, so this needs no setup beyond step 2.
+   Templates can only be edited after adding your own SMTP server (Authentication → Emails → SMTP Settings). If
+   you do that, adding `{{ .Token }}` to the *Reset Password* template also enables the "Got a 6-digit code
+   instead?" option on the Forgot Password page.
+   The built-in sender only delivers to members of your Supabase organization and a few emails per hour. For a
+   demo with other people, either add SMTP or turn off *Confirm email* (Authentication → Sign In / Providers → Email).
 4. **Sign up in the app.** The **first account becomes the manager**; everyone after that joins as staff. A manager
    can change roles in *Settings → Team & Access*.
 
