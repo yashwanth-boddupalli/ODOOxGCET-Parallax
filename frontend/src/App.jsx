@@ -28,6 +28,7 @@ import './styles/charts.css';
 import './styles/forms.css';
 import './styles/auth.css';
 import './styles/app.css';
+import './styles/assistant.css';
 
 export function App() {
   return (
