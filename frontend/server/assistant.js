@@ -402,7 +402,7 @@ async function complete(opts) {
  */
 export async function answerQuestion({ messages, accessToken, warehouseId, env, dbClient }) {
   const apiKey = env.GROQ_API_KEY;
-  if (!apiKey) throw new AssistantError(503, 'The assistant is not configured: add GROQ_API_KEY to frontend/.env.local and restart the dev server.');
+  if (!apiKey) throw new AssistantError(503, 'The assistant is not configured: set GROQ_API_KEY (in frontend/.env.local locally, or in the Vercel project settings).');
   if (!Array.isArray(messages) || !messages.length) throw new AssistantError(400, 'Ask a question first.');
 
   const history = messages
