@@ -1,3 +1,8 @@
+THE deployed link of the prototype is: https://stocksense-plum-beta.vercel.app/
+The test login credentials of the page are :
+email : parallax@gmail.com
+password : 12345678
+
 # StockSense
 
 **StockSense** is an intelligent inventory management system built for the **Odoo × GCET Hyderabad Hackathon**. It provides real-time visibility into stock levels, streamlines warehouse operations, and surfaces actionable insights — all through a clean, modern interface.
