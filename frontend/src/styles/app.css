@@ -24,13 +24,13 @@
 .status-badge.out-of-stock .badge-dot { background-color: var(--rose); }
 
 .operation-badge.internal-transfer {
-  background-color: #eef2ff;
-  color: #4338ca;
+  background-color: var(--indigo-light);
+  color: var(--indigo-strong);
 }
 
 .operation-badge.initial-stock {
-  background-color: #f1f5f9;
-  color: #475569;
+  background-color: var(--bg-surface-hover);
+  color: var(--text-secondary);
 }
 
 .role-pill {
@@ -48,7 +48,7 @@
 }
 
 .role-pill.staff {
-  background: #f1f5f9;
+  background: var(--bg-surface-hover);
   color: var(--text-secondary);
   border-color: var(--border-subtle);
 }
@@ -151,7 +151,7 @@
   gap: 10px;
   padding: 14px 22px;
   border-top: 1px solid var(--border-subtle);
-  background: #fafbfc;
+  background: var(--bg-surface-muted);
   flex-wrap: wrap;
 }
 
@@ -253,7 +253,7 @@
 
 .compact-table th {
   text-align: left;
-  background: #f8fafc;
+  background: var(--bg-surface-secondary);
   padding: 9px 12px;
   font-size: 11px;
   font-weight: 600;
@@ -361,7 +361,7 @@
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  background: #f8fafc;
+  background: var(--bg-surface-secondary);
   border-bottom: 1px solid var(--border-subtle);
 }
 
@@ -374,7 +374,7 @@
   text-align: left;
   font-size: 13px;
   color: var(--text-primary);
-  border-bottom: 1px solid #f1f5f9;
+  border-bottom: 1px solid var(--border-faint);
 }
 
 .dropdown-item:last-child {
@@ -440,7 +440,7 @@
 /* ---------- Loading, empty and setup states ---------- */
 .skeleton {
   border-radius: var(--radius-sm);
-  background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 37%, #f1f5f9 63%);
+  background: linear-gradient(90deg, var(--bg-surface-hover) 25%, var(--bg-track) 37%, var(--bg-surface-hover) 63%);
   background-size: 400% 100%;
   animation: shimmer 1.4s ease infinite;
 }
@@ -463,21 +463,21 @@
   border-radius: var(--radius-lg);
   background: var(--amber-light);
   border: 1px solid var(--amber-border);
-  color: #92400e;
+  color: var(--amber-deep);
   margin-bottom: 24px;
   font-size: 13px;
 }
 
 .setup-banner h4 {
   font-size: 14px;
-  color: #b45309;
+  color: var(--amber-strong);
   margin-bottom: 2px;
 }
 
 .setup-banner code {
   font-family: var(--font-mono);
   font-size: 12px;
-  background: rgba(255, 255, 255, 0.7);
+  background: color-mix(in srgb, var(--bg-surface) 70%, transparent);
   padding: 1px 5px;
   border-radius: 4px;
 }
@@ -498,8 +498,8 @@
   bottom: 24px;
   right: 24px;
   max-width: min(420px, calc(100vw - 48px));
-  background-color: #0f172a;
-  color: #ffffff;
+  background-color: var(--bg-inverse);
+  color: var(--text-inverse);
   padding: 12px 18px;
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-dropdown);

@@ -65,28 +65,28 @@ export const LowStockPage = () => {
           gap: '14px',
           padding: '16px 20px',
           borderRadius: 'var(--radius-lg)',
-          backgroundColor: '#fffbeb',
-          border: '1px solid #fde68a',
-          color: '#92400e'
+          backgroundColor: 'var(--amber-light)',
+          border: '1px solid var(--amber-border)',
+          color: 'var(--amber-deep)'
         }}>
           <div style={{
             width: '36px',
             height: '36px',
             borderRadius: 'var(--radius-full)',
-            backgroundColor: '#fef3c7',
+            backgroundColor: 'var(--amber-soft)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             flexShrink: 0
           }}>
-            <AlertTriangle size={20} color="#d97706" />
+            <AlertTriangle size={20} style={{ color: 'var(--amber)' }} />
           </div>
           <div style={{ flex: 1 }}>
-            <h4 style={{ fontSize: '14px', fontWeight: 700, color: '#b45309' }}>
+            <h4 style={{ fontSize: '14px', fontWeight: 700, color: 'var(--amber-strong)' }}>
               Attention: {s.totalCount} SKU{s.totalCount === 1 ? ' has' : 's have'} dropped to or below the reorder threshold
               {s.outOfStockCount > 0 && ` (${s.outOfStockCount} out of stock)`}
             </h4>
-            <p style={{ fontSize: '13px', marginTop: '2px', color: '#92400e' }}>
+            <p style={{ fontSize: '13px', marginTop: '2px', color: 'var(--amber-deep)' }}>
               {s.projectedStockouts72h > 0
                 ? `${s.projectedStockouts72h} product${s.projectedStockouts72h === 1 ? ' is' : 's are'} projected to run out within 72 hours at the last 30 days’ shipping rate.`
                 : 'None are projected to run out within 72 hours at the last 30 days’ shipping rate.'}
@@ -151,7 +151,7 @@ export const LowStockPage = () => {
                     </td>
                     <td className="nowrap">{formatQty(p.minStock)} {p.unit}</td>
                     <td className="nowrap">
-                      <strong style={{ color: '#2563eb' }}>+{formatQty(p.recommendedQty)} {p.unit}</strong>
+                      <strong style={{ color: 'var(--primary)' }}>+{formatQty(p.recommendedQty)} {p.unit}</strong>
                     </td>
                     <td>{p.warehouse || '—'}</td>
                     <td><StatusBadge status={p.status} /></td>

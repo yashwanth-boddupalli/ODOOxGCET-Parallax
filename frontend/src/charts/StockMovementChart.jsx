@@ -48,12 +48,12 @@ export const StockMovementChart = ({ data = [], range = 'today', onRangeChange, 
         <div className="card-actions">
           <div className="chart-legend-row">
             <div className="legend-item">
-              <span className="legend-indicator circle" style={{ backgroundColor: '#2563eb' }} />
+              <span className="legend-indicator circle" style={{ backgroundColor: 'var(--primary)' }} />
               <span>Available Level</span>
             </div>
             {target !== null && (
               <div className="legend-item">
-                <span className="legend-indicator" style={{ backgroundColor: '#f59e0b', height: '2px' }} />
+                <span className="legend-indicator" style={{ backgroundColor: 'var(--amber)', height: '2px' }} />
                 <span>Target ({formatCompact(target)})</span>
               </div>
             )}
@@ -78,8 +78,8 @@ export const StockMovementChart = ({ data = [], range = 'today', onRangeChange, 
             <svg viewBox={`0 0 ${width} ${height}`} className="chart-svg">
               <defs>
                 <linearGradient id="stockGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#2563eb" stopOpacity="0.4" />
-                  <stop offset="100%" stopColor="#2563eb" stopOpacity="0.0" />
+                  <stop offset="0%" stopColor="var(--primary)" stopOpacity="0.4" />
+                  <stop offset="100%" stopColor="var(--primary)" stopOpacity="0.0" />
                 </linearGradient>
               </defs>
 
@@ -87,7 +87,7 @@ export const StockMovementChart = ({ data = [], range = 'today', onRangeChange, 
               {ticks.map((val) => (
                 <g key={val}>
                   <line x1={padding.left} y1={yFor(val)} x2={width - padding.right} y2={yFor(val)} className="grid-line" />
-                  <text x={padding.left - 6} y={yFor(val) + 3} textAnchor="end" fontSize="10" fill="#94a3b8">
+                  <text x={padding.left - 6} y={yFor(val) + 3} textAnchor="end" fontSize="10" style={{ fill: 'var(--text-muted)' }}>
                     {formatCompact(val)}
                   </text>
                 </g>
@@ -116,7 +116,7 @@ export const StockMovementChart = ({ data = [], range = 'today', onRangeChange, 
                     onMouseLeave={() => setHoveredPoint(null)}
                   />
                   {(i % labelEvery === 0 || i === points.length - 1) && (
-                    <text x={pt.x} y={height - 10} textAnchor="middle" fontSize="10.5" fill="#94a3b8">
+                    <text x={pt.x} y={height - 10} textAnchor="middle" fontSize="10.5" style={{ fill: 'var(--text-muted)' }}>
                       {pt.time}
                     </text>
                   )}
@@ -131,8 +131,8 @@ export const StockMovementChart = ({ data = [], range = 'today', onRangeChange, 
                 top: '12px',
                 left: '50%',
                 transform: 'translateX(-50%)',
-                background: '#0f172a',
-                color: '#ffffff',
+                background: 'var(--bg-inverse)',
+                color: 'var(--text-inverse)',
                 padding: '6px 12px',
                 borderRadius: 'var(--radius-sm)',
                 fontSize: '12px',
@@ -163,7 +163,7 @@ export const StockMovementChart = ({ data = [], range = 'today', onRangeChange, 
           flexWrap: 'wrap'
         }}>
           <span>Current Level: <strong style={{ color: 'var(--text-primary)' }}>{formatQty(current)} units</strong></span>
-          <span>Target Buffer: <strong style={{ color: '#d97706' }}>{target !== null ? `${formatQty(target)} units` : 'Not set'}</strong></span>
+          <span>Target Buffer: <strong style={{ color: 'var(--amber)' }}>{target !== null ? `${formatQty(target)} units` : 'Not set'}</strong></span>
           <span>
             Safety Margin:{' '}
             <strong style={{ color: margin === null ? 'var(--text-muted)' : margin >= 0 ? 'var(--emerald)' : 'var(--rose)' }}>

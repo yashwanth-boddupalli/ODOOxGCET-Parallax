@@ -20,11 +20,11 @@ export const InventoryActivityChart = ({ data = [], range = '7d', onRangeChange,
         <div className="card-actions">
           <div className="chart-legend-row" style={{ marginRight: '8px' }}>
             <div className="legend-item">
-              <span className="legend-indicator" style={{ backgroundColor: '#2563eb' }} />
+              <span className="legend-indicator" style={{ backgroundColor: 'var(--primary)' }} />
               <span>Inbound</span>
             </div>
             <div className="legend-item">
-              <span className="legend-indicator" style={{ backgroundColor: '#059669' }} />
+              <span className="legend-indicator" style={{ backgroundColor: 'var(--emerald)' }} />
               <span>Outbound</span>
             </div>
           </div>
@@ -102,10 +102,10 @@ export const InventoryActivityChart = ({ data = [], range = '7d', onRangeChange,
           flexWrap: 'wrap'
         }}>
           <div>
-            Total Inbound: <strong style={{ color: '#2563eb' }}>{formatQty(totalIn)} units</strong>
+            Total Inbound: <strong style={{ color: 'var(--primary)' }}>{formatQty(totalIn)} units</strong>
           </div>
           <div>
-            Total Outbound: <strong style={{ color: '#059669' }}>{formatQty(totalOut)} units</strong>
+            Total Outbound: <strong style={{ color: 'var(--emerald)' }}>{formatQty(totalOut)} units</strong>
           </div>
           <div>
             Net Inventory Change: <strong style={{ color: 'var(--text-primary)' }}>{formatSignedQty(totalIn - totalOut)} units</strong>

@@ -16,12 +16,12 @@ export const FastMovingProducts = ({ data = [], loading = false }) => {
               gap: '4px',
               padding: '2px 8px',
               borderRadius: 'var(--radius-full)',
-              backgroundColor: '#fef3c7',
-              color: '#b45309',
+              backgroundColor: 'var(--amber-soft)',
+              color: 'var(--amber-strong)',
               fontSize: '11px',
               fontWeight: 700
             }}>
-              <Flame size={12} fill="#b45309" />
+              <Flame size={12} fill="currentColor" />
               High Velocity
             </span>
           </div>

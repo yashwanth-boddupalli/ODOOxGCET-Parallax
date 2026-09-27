@@ -241,7 +241,7 @@
 .ai-bubble.error {
   background: var(--rose-light) !important;
   border-color: var(--rose-border) !important;
-  color: var(--rose-hover) !important;
+  color: var(--rose-strong) !important;
 }
 
 .ai-bubble.typing {
@@ -313,6 +313,7 @@
   padding: 9px 12px;
   border-radius: var(--radius-md);
   border: 1px solid var(--border-subtle);
+  background: var(--bg-surface);
   font-size: 13.5px;
   line-height: 1.4;
   color: var(--text-primary);
@@ -365,7 +366,7 @@
 .md-table { width: 100%; font-size: 12px; border-collapse: collapse; }
 .md-table th {
   text-align: left;
-  background: #f8fafc;
+  background: var(--bg-surface-secondary);
   color: var(--text-secondary);
   font-weight: 600;
   padding: 6px 8px;

@@ -90,7 +90,7 @@ export const WarehousesPage = () => {
                   <span>Storage Utilization</span>
                   <span><strong>{wh.capacity}</strong></span>
                 </div>
-                <div style={{ width: '100%', height: '6px', backgroundColor: '#e2e8f0', borderRadius: 'var(--radius-full)', overflow: 'hidden' }}>
+                <div style={{ width: '100%', height: '6px', backgroundColor: 'var(--bg-track)', borderRadius: 'var(--radius-full)', overflow: 'hidden' }}>
                   <div style={{
                     width: `${Math.min(percent, 100)}%`,
                     height: '100%',
