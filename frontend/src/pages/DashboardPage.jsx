@@ -18,11 +18,14 @@ import {
   listOperationRows,
 } from '../api';
 import { downloadCsv, operationCsvColumns } from '../lib/csv';
+import { useTheme } from '../theme/theme';
 import {
   Calendar,
   RotateCw,
   Plus,
-  Download
+  Download,
+  Moon,
+  Sun,
 } from 'lucide-react';
 
 const dateOptions = [
@@ -42,10 +45,17 @@ const KpiSkeleton = () => (
 
 export const DashboardPage = () => {
   const { warehouseId, activeWarehouse, version, refresh, openAddProduct } = useWorkspace();
+  const { theme, setTheme } = useTheme();
   const [dateRange, setDateRange] = useState('30d');
   const [showDateMenu, setShowDateMenu] = useState(false);
   const [activityRange, setActivityRange] = useState('7d');
   const [movementRange, setMovementRange] = useState('today');
+
+  const isDark = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+
+  const toggleTheme = () => {
+    setTheme(isDark ? 'light' : 'dark');
+  };
 
   const scopeDeps = [warehouseId, version];
   const kpis = useAsync(() => getKpis(dateRange, warehouseId), [dateRange, ...scopeDeps]);
@@ -67,6 +77,17 @@ export const DashboardPage = () => {
         description={`Live telemetry across ${activeWarehouse ? activeWarehouse.name : 'all warehouse facilities'}: inbound receiving, stock levels, and dispatch velocity.`}
         actions={
           <>
+            {/* Dashboard Dark Theme Toggle */}
+            <button
+              className="btn btn-secondary btn-sm"
+              onClick={toggleTheme}
+              title={`Switch dashboard to ${isDark ? 'Light' : 'Dark'} theme`}
+              aria-label="Toggle Dashboard Dark Theme"
+            >
+              {isDark ? <Sun size={15} style={{ color: 'var(--amber)' }} /> : <Moon size={15} className="text-muted" />}
+              <span>{isDark ? 'Light Theme' : 'Dark Theme'}</span>
+            </button>
+
             {/* Date Range Selector Pill with Dropdown */}
             <div style={{ position: 'relative' }}>
               <button

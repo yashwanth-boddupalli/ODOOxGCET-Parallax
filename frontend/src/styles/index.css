@@ -1,11 +1,17 @@
 /* StockSense Design System Tokens */
 :root {
+  color-scheme: light;
+
   /* Canvas & Surfaces */
   --bg-canvas: #f8fafc;
   --bg-surface: #ffffff;
   --bg-surface-hover: #f1f5f9;
   --bg-surface-secondary: #f8fafc;
   --bg-surface-elevated: #ffffff;
+  --bg-surface-muted: #fafbfc;
+  --bg-track: #e2e8f0;
+  --bg-inverse: #0f172a;
+  --text-inverse: #ffffff;
   
   /* Sidebar Palette (Enterprise Slate Navy) */
   --bg-sidebar: #0b1329;
@@ -22,26 +28,38 @@
   --primary-hover: #1d4ed8;
   --primary-light: #eff6ff;
   --primary-border: #bfdbfe;
+  --primary-light-hover: #dbeafe;
+  --primary-strong: #1d4ed8;
 
   --emerald: #059669;
   --emerald-hover: #047857;
   --emerald-light: #ecfdf5;
   --emerald-border: #a7f3d0;
+  --emerald-strong: #047857;
 
   --amber: #d97706;
   --amber-hover: #b45309;
   --amber-light: #fffbeb;
   --amber-border: #fde68a;
+  --amber-soft: #fef3c7;
+  --amber-strong: #b45309;
+  --amber-deep: #92400e;
 
   --indigo: #4f46e5;
   --indigo-hover: #4338ca;
   --indigo-light: #eef2ff;
   --indigo-border: #c7d2fe;
+  --indigo-strong: #4338ca;
 
   --rose: #e11d48;
   --rose-hover: #be123c;
   --rose-light: #fff1f2;
   --rose-border: #fecdd3;
+  --rose-light-hover: #ffe4e6;
+  --rose-strong: #be123c;
+
+  --orange-soft: #ffedd5;
+  --orange-strong: #c2410c;
 
   /* Neutral Typography */
   --text-primary: #0f172a;
@@ -50,6 +68,11 @@
   --text-disabled: #cbd5e1;
 
   /* Borders & Dividers */
+  --border-faint: #f1f5f9;
+
+  /* Chart fills */
+  --chart-volume-top: #93c5fd;
+  --chart-volume-bottom: #dbeafe;
   --border-subtle: #e2e8f0;
   --border-default: #cbd5e1;
   --border-strong: #94a3b8;
@@ -77,6 +100,83 @@
   --sidebar-width: 260px;
   --sidebar-width-collapsed: 72px;
   --header-height: 64px;
+}
+
+/* Dark theme: set on <html data-theme="dark"> by src/theme/theme.js. Only colors change;
+   the sidebar keeps its navy, which already reads as dark. */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --bg-canvas: #0b1120;
+  --bg-surface: #131c2f;
+  --bg-surface-hover: #1c2740;
+  --bg-surface-secondary: #172136;
+  --bg-surface-elevated: #19233a;
+  --bg-surface-muted: #111a2b;
+  --bg-track: #26324b;
+  --bg-inverse: #26324b;
+  --text-inverse: #f8fafc;
+
+  --bg-sidebar: #080e1f;
+  --bg-sidebar-elevated: #0d1529;
+  --bg-sidebar-hover: #16213d;
+  --border-sidebar: #1a2438;
+
+  --primary: #3b82f6;
+  --primary-hover: #2563eb;
+  --primary-light: rgba(59, 130, 246, 0.14);
+  --primary-border: rgba(59, 130, 246, 0.35);
+  --primary-light-hover: rgba(59, 130, 246, 0.24);
+  --primary-strong: #93c5fd;
+
+  --emerald: #0ea572;
+  --emerald-hover: #059669;
+  --emerald-light: rgba(16, 185, 129, 0.13);
+  --emerald-border: rgba(16, 185, 129, 0.35);
+  --emerald-strong: #6ee7b7;
+
+  --amber: #f59e0b;
+  --amber-hover: #d97706;
+  --amber-light: rgba(245, 158, 11, 0.12);
+  --amber-border: rgba(245, 158, 11, 0.35);
+  --amber-soft: rgba(245, 158, 11, 0.2);
+  --amber-strong: #fbbf24;
+  --amber-deep: #fcd34d;
+
+  --indigo: #818cf8;
+  --indigo-hover: #6366f1;
+  --indigo-light: rgba(99, 102, 241, 0.16);
+  --indigo-border: rgba(99, 102, 241, 0.4);
+  --indigo-strong: #c7d2fe;
+
+  --rose: #f43f5e;
+  --rose-hover: #e11d48;
+  --rose-light: rgba(244, 63, 94, 0.13);
+  --rose-border: rgba(244, 63, 94, 0.38);
+  --rose-light-hover: rgba(244, 63, 94, 0.22);
+  --rose-strong: #fda4af;
+
+  --orange-soft: rgba(249, 115, 22, 0.18);
+  --orange-strong: #fdba74;
+
+  --text-primary: #e2e8f0;
+  --text-secondary: #a3b1c6;
+  --text-muted: #7385a0;
+  --text-disabled: #475569;
+
+  --border-faint: #1a2438;
+
+  --chart-volume-top: #3b82f6;
+  --chart-volume-bottom: #1d4ed8;
+  --border-subtle: #243049;
+  --border-default: #33415c;
+  --border-strong: #4b5a75;
+
+  --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+  --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.35), 0 1px 2px -1px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -2px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.45), 0 4px 6px -4px rgba(0, 0, 0, 0.3);
+  --shadow-dropdown: 0 10px 25px -5px rgba(0, 0, 0, 0.55), 0 8px 10px -6px rgba(0, 0, 0, 0.4);
 }
 
 /* Modern CSS Reset */
@@ -137,9 +237,9 @@ table {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: var(--border-default);
   border-radius: var(--radius-full);
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: var(--border-strong);
 }

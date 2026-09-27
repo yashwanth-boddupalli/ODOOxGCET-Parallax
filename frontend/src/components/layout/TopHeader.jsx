@@ -4,19 +4,24 @@ import {
   AlertTriangle,
   Bell,
   Boxes,
+  Check,
   ChevronDown,
   ClipboardList,
   HelpCircle,
   Loader2,
   LogOut,
   Menu,
+  Monitor,
+  Moon,
   Plus,
   Search,
   Settings,
+  Sun,
   Warehouse,
 } from 'lucide-react';
 import { useWorkspace } from '../../app/useWorkspace';
 import { useAuth } from '../../auth/useAuth';
+import { useTheme } from '../../theme/theme';
 import { listLowStock, searchEverything } from '../../api';
 import { formatQty, initialsOf } from '../../lib/format';
 
@@ -241,6 +246,49 @@ const AlertsBell = () => {
   );
 };
 
+const THEME_OPTIONS = [
+  { value: 'light', label: 'Light', icon: Sun },
+  { value: 'dark', label: 'Dark', icon: Moon },
+  { value: 'system', label: 'System', sub: 'Match your device setting', icon: Monitor },
+];
+
+const ThemeMenu = () => {
+  const { theme, setTheme } = useTheme();
+  const [open, setOpen] = useState(false);
+  const ref = useClickAway(() => setOpen(false));
+  const current = THEME_OPTIONS.find((o) => o.value === theme);
+  const CurrentIcon = current.icon;
+
+  const choose = (value) => {
+    setTheme(value);
+    setOpen(false);
+  };
+
+  return (
+    <div className="dropdown-anchor" ref={ref}>
+      <button className="header-action-btn" onClick={() => setOpen(!open)}
+        aria-label={`Change theme (current: ${current.label})`} title="Change theme" aria-expanded={open} aria-haspopup="true">
+        <CurrentIcon size={18} />
+      </button>
+      {open && (
+        <div className="dropdown-menu" style={{ width: 220 }}>
+          <div className="dropdown-heading">Theme</div>
+          {THEME_OPTIONS.map(({ value, label, sub, icon: Icon }) => (
+            <button key={value} className={`dropdown-item ${theme === value ? 'active' : ''}`} onClick={() => choose(value)}>
+              <Icon size={15} className={theme === value ? undefined : 'text-muted'} />
+              <span className="item-main">
+                <span className="item-title">{label}</span>
+                {sub && <span className="item-sub">{sub}</span>}
+              </span>
+              {theme === value && <Check size={15} />}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
 const UserMenu = () => {
   const navigate = useNavigate();
   const { profile, user, signOut } = useAuth();
@@ -323,6 +371,7 @@ export const TopHeader = ({ onOpenMobileMenu }) => {
 
         <div className="header-divider" />
 
+        <ThemeMenu />
         <UserMenu />
       </div>
     </header>

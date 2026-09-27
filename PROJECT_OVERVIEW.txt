@@ -1,0 +1,471 @@
+==============================================================================
+                         STOCKSENSE - PROJECT OVERVIEW
+         Inventory Operations Management | Odoo x GCET Hyderabad Hackathon
+==============================================================================
+
+Last updated : 26 September 2026
+Repository   : https://github.com/yashwanth-boddupalli/ODOOxGCET-Parallax
+Live site    : https://stocksense-plum-beta.vercel.app   (built from "main")
+Local dev    : http://localhost:5173   (Vite's default port; the next free
+               port, e.g. 5174, if 5173 is already taken)
+
+
+------------------------------------------------------------------------------
+1. WHAT STOCKSENSE IS
+------------------------------------------------------------------------------
+
+StockSense is a web-based inventory management system for businesses that run
+several warehouses. It tracks every product, every storage location and every
+movement of stock, and turns that into dashboards, low-stock alerts and
+analytics.
+
+In one sentence: it is a lightweight, Odoo-style inventory app. Goods come in
+(receipts), go out (deliveries), move between places (transfers) and get
+corrected (adjustments). Every change is written to a permanent, auditable
+stock ledger.
+
+Main goals:
+  - Real-time view of stock across all warehouses and locations
+  - Safe, all-or-nothing stock changes (stock can never go negative)
+  - A full audit trail that cannot be edited or deleted
+  - Proactive low-stock alerts with one-click reordering
+  - An AI assistant that answers questions about live inventory data
+
+
+------------------------------------------------------------------------------
+2. TECHNOLOGY STACK
+------------------------------------------------------------------------------
+
+  Layer            Technology
+  ---------------  -----------------------------------------------------------
+  Frontend         React 19, Vite 8, React Router 7, lucide-react icons,
+                   hand-written CSS (no UI framework), oxlint for linting
+  Backend          Supabase (there is NO separate API server):
+                     - PostgreSQL with Row Level Security (RLS)
+                     - Supabase Auth (sign-up, sign-in, password reset)
+                     - PostgREST (exposes views + database functions)
+  Business logic   PL/pgSQL database functions (the "stock engine")
+  AI assistant     Groq API (model openai/gpt-oss-120b, fallback
+                   openai/gpt-oss-20b), called from a server-side function
+  Hosting          Vercel (static frontend + one serverless function)
+  DB tests         PGlite (in-process Postgres) + Node test runner
+
+
+------------------------------------------------------------------------------
+3. ARCHITECTURE
+------------------------------------------------------------------------------
+
+   Browser (React app)
+      |
+      |  supabase-js  (public "publishable" key + the user's login token)
+      v
+   Supabase
+      |-- Auth ........ sign-up / sign-in / password reset
+      |-- PostgREST ... serves views and functions, applies RLS per request
+      '-- Postgres
+            |-- tables ...... products, warehouses, stock, operations, ledger
+            |-- RLS ......... who may read / write what
+            |-- views ....... rows shaped exactly as the UI needs them
+            '-- functions ... stock engine + dashboard / analytics queries
+
+   Browser (AI chat widget)
+      |
+      |  POST /api/assistant  (with the user's login token)
+      v
+   Assistant function  (Vercel Function in production, Vite dev-server
+      |                 middleware locally; both run the same code)
+      |-- Groq API ........ the language model (API key stays on the server)
+      '-- Supabase ........ read-only data lookups made AS the signed-in user,
+                            so RLS applies exactly as it does in the app
+
+Key idea: "the database is the backend". The business rules live inside
+Postgres, next to the data, so they apply however the data is reached. There
+is no server to deploy or keep running (apart from the small assistant
+function).
+
+
+------------------------------------------------------------------------------
+4. FOLDER STRUCTURE
+------------------------------------------------------------------------------
+
+  ODOOxGCET-Parallax/
+  |-- frontend/                   React + Vite application
+  |   |-- src/
+  |   |   |-- pages/              one file per screen (Dashboard, Products ...)
+  |   |   |   '-- auth/           Login, Sign up, Forgot / Reset password
+  |   |   |-- components/
+  |   |   |   |-- layout/         AppLayout, Sidebar, TopHeader
+  |   |   |   |-- forms/          Product, Operation, Warehouse modals, drawer
+  |   |   |   |-- common/         DataTable, KpiCard, Modal, StatusBadge ...
+  |   |   |   '-- assistant/      AI chat widget + Markdown renderer
+  |   |   |-- charts/             5 dashboard charts (activity, categories ...)
+  |   |   |-- api/                index.js = every Supabase call;
+  |   |   |                       assistant.js = AI chat client
+  |   |   |-- auth/               AuthProvider, route guards, useAuth
+  |   |   |-- app/                useWorkspace (active warehouse, refresh,
+  |   |   |                       toasts, modals)
+  |   |   |-- lib/                supabase client, formatting, CSV export
+  |   |   '-- styles/             design system CSS
+  |   |-- server/                 AI assistant server code
+  |   |   |-- assistant.js        tools, prompt, Groq conversation loop
+  |   |   '-- vitePluginAssistant.js   serves /api/assistant in local dev
+  |   |-- api/
+  |   |   '-- assistant.js        Vercel Function: /api/assistant in production
+  |   |-- vercel.json             SPA routing (used: Vercel Root Directory =
+  |   |                           frontend)
+  |   '-- vite.config.js
+  |-- api/
+  |   '-- assistant.js            one-line pointer to frontend/api/assistant.js
+  |                               (only used if Root Directory = repo root)
+  |-- supabase/
+  |   |-- migrations/             6 SQL files, run in order (see section 8)
+  |   |-- seed.sql                demo data (6 months of history)
+  |   |-- setup.sql               GENERATED: all migrations + seed in one file
+  |   '-- tests/                  33 database tests (PGlite)
+  |-- docs/                       design docs, API contract, plans, workflow
+  |-- backend/, database/         pointer READMEs -> supabase/
+  |-- vercel.json                 build settings if Root Directory = repo root
+  |-- package.json                root: marks api/ code as ES modules
+  '-- README.md
+
+
+------------------------------------------------------------------------------
+5. FEATURES (SCREENS)
+------------------------------------------------------------------------------
+
+The sidebar groups the app into Main, Inventory, Insights and System.
+
+  Dashboard ............ KPI cards (total products, units in stock, pending
+                         orders, low stock) with change vs an earlier period;
+                         charts for inventory activity (7/30 days), stock
+                         movement, top categories, fast-moving products and
+                         monthly performance; recent operations table.
+                         Date range (today / 7d / 30d / quarter) + Sync button.
+
+  Products ............. Product catalogue with search, filters, CSV export.
+                         Add / edit products (name, SKU, category, unit,
+                         price, minimum stock, reorder quantity, warehouse,
+                         opening stock). Products are archived, never
+                         deleted. A blank SKU is auto-generated (ELE-000042).
+
+  Receipts ............. Incoming goods from vendors (references PO-2026-0001)
+  Delivery Orders ...... Outgoing goods to customers   (references DO-...)
+  Internal Transfers ... Moves between warehouses/locations (TR-...)
+  Adjustments .......... Stock count corrections and write-offs (ADJ-...)
+                         All four share one "New Operation" form (multi-line)
+                         and a document drawer with Mark Ready, Check
+                         Availability, Validate (full or partial, with
+                         backorder) and Cancel.
+
+  Stock Ledger ......... Every completed stock movement: what moved, from
+                         where to where, when and by whom. Read-only.
+
+  Warehouses ........... Warehouse cards with address, units stored, capacity
+                         utilisation bar, staff count and storage locations.
+                         Managers can add warehouses and locations
+                         (racks, bays, bins).
+
+  Low Stock ............ Products at/below their reorder level or out of
+                         stock, with recommended reorder quantity, days of
+                         cover and projected stock-outs within 72 hours.
+                         "Reorder" drafts a receipt; bulk reorder creates one
+                         draft receipt per warehouse.
+
+  Analytics ............ Inventory valuation, total units, units shipped
+                         (30 days), average days on hand, dead stock value.
+
+  Settings ............. Tabs: General Configuration, Alerts & Reorders,
+                         Facility Defaults, Team & Access (roles, activate /
+                         deactivate users), My Profile.
+
+  Across the app:
+    - Active Facility selector in the header scopes every page to one
+      warehouse (or all). The choice is remembered in the browser.
+    - Global search (Ctrl + K), a low-stock notification bell, sidebar badges
+      (pending receipts, deliveries, low-stock count), CSV export on lists.
+    - Sign up / sign in / forgot password (email reset link; a 6-digit code
+      option also works once custom SMTP is set up in Supabase).
+
+
+------------------------------------------------------------------------------
+6. AI ASSISTANT (STOCKSENSE ASSISTANT)
+------------------------------------------------------------------------------
+
+A chat button in the bottom-right corner of every signed-in page. Users ask
+questions in plain English, for example:
+  - "What's running low right now?"
+  - "Summarise today's receipts and deliveries"
+  - "Which products sold fastest this month?"
+  - "How full is each warehouse?"
+
+How it works:
+  1. The widget sends the chat + the user's login token to /api/assistant.
+  2. The server checks the token with Supabase (signed out -> refused).
+  3. The Groq model decides which read-only "tools" it needs:
+       get_overview, search_products, get_product_stock, get_low_stock,
+       list_operations, get_stock_movements, get_warehouses, get_analytics
+  4. Each tool queries Supabase AS THAT USER, so RLS applies.
+  5. The model answers in short Markdown (tables / bullets), and the chat
+     shows which lookups were made ("Checked low-stock alerts").
+
+Safety rules:
+  - Read-only: it cannot create, change or delete anything; it tells the user
+    where in the app to do it instead.
+  - Numbers must come from the tools; it must not invent figures.
+  - The Groq API key lives only on the server, never in the browser.
+  - Up to 6 tool rounds per question; if rate-limited, it retries once with
+    the smaller fallback model.
+
+Where the code runs:
+  - Local:      Vite dev-server middleware (frontend/server/vitePluginAssistant.js)
+  - Production: Vercel Function (frontend/api/assistant.js)
+  Both call the same answerQuestion() in frontend/server/assistant.js.
+
+
+------------------------------------------------------------------------------
+7. USERS, ROLES AND SECURITY
+------------------------------------------------------------------------------
+
+  Role      Can do
+  --------  ------------------------------------------------------------------
+  MANAGER   Everything: master data (products, categories, warehouses,
+            locations), settings, user roles and access, all operations.
+  STAFF     Read everything; create, confirm, validate and cancel operations.
+            Cannot change master data, settings or users. Cannot validate
+            stock-reducing adjustments while "Require manager sign-off" is on.
+
+  - The FIRST person to sign up becomes the manager; later sign-ups are staff.
+  - The last active manager cannot be removed or demoted.
+  - Signed-out visitors can read nothing.
+  - Browsers cannot write stock tables directly; they can only call the
+    approved database functions.
+  - The Supabase URL and publishable key are public by design and committed
+    in frontend/src/lib/supabaseConfig.js. RLS protects the data. The secret
+    service_role key must NEVER be used in the frontend or committed.
+
+
+------------------------------------------------------------------------------
+8. DATABASE
+------------------------------------------------------------------------------
+
+Tables:
+  profiles ............ one per user: name, role, job title, home warehouse,
+                        active flag
+  warehouses .......... name, code, address, capacity
+  locations ........... INTERNAL places in a warehouse (each has a default
+                        "Stock"), plus virtual VENDOR, CUSTOMER and
+                        INVENTORY_LOSS locations
+  categories .......... name and chart colour
+  products ............ name, SKU (unique, case-insensitive), category, unit,
+                        price, primary warehouse, archived
+  reorder_rules ....... minimum quantity (low-stock threshold), reorder qty
+  stock_quants ........ quantity per product per location (never negative)
+  operations,
+  operation_lines ..... receipts / deliveries / transfers / adjustments
+  stock_moves ......... the APPEND-ONLY ledger of every stock change
+  reference_sequences . gap-free numbering (PO-2026-0001 ...)
+  app_settings ........ workspace name, default warehouse, reorder
+                        multiplier, sign-off rule, stock target, time zone
+
+  Quantities use numeric(15,3) (so kg and litres work); money numeric(15,2).
+
+Migrations (supabase/migrations, run in order):
+  1. schema .................. tables, constraints, triggers
+  2. security ................ RLS policies and grants
+  3. views ................... read views shaped for the UI
+  4. stock_engine ............ the stock engine + write functions
+  5. insights ................ dashboard, analytics, low stock, reorder
+  6. reference_data_and_grants
+
+Demo data (seed.sql): 4 warehouses in Hyderabad (Main Central Hub, North
+Logistics Depot, South Fulfillment Center, West Coast Facility), 6 categories
+(Electronics, Accessories, Industrial, Apparel, Equipment, Raw Materials),
+demo vendors and customers, and about 6 months of operation history. It is
+all created through the stock engine, so stock and ledger always agree.
+
+
+------------------------------------------------------------------------------
+9. HOW STOCK MOVES (THE STOCK ENGINE)
+------------------------------------------------------------------------------
+
+Every movement goes FROM one location TO another:
+
+  Document                    From -> To                            Effect
+  --------------------------  ------------------------------------  ---------
+  Receipt (PO-...)            Vendors -> warehouse                  + stock
+  Delivery (DO-...)           warehouse -> Customers                - stock
+  Internal transfer (TR-...)  location -> location                  no change
+  Adjustment (ADJ-...)        warehouse <-> Inventory Adjustment    counted
+                                                                    minus system
+  Opening stock (INIT-sku)    Inventory Adjustment -> warehouse     + stock
+
+Lifecycle:
+
+  DRAFT --(Mark Ready)--> READY ------(Validate)--> DONE
+                     \--> WAITING (not enough stock yet)
+  Anything except DONE can be CANCELLED.
+
+  Shown in the UI as: Pending (DRAFT/WAITING), In Progress (READY),
+  Completed (DONE), Cancelled.
+
+Guarantees:
+  - One transaction per action: validate_operation locks every affected
+    stock row in a fixed order (no deadlocks), re-checks availability,
+    writes the ledger and updates stock. If anything fails, nothing changes.
+  - Stock in a real location never goes negative (engine check + CHECK
+    constraint).
+  - The ledger is append-only: triggers block UPDATE, DELETE and TRUNCATE.
+  - Completed documents cannot be edited. Partial validation can create a
+    backorder for the remaining quantity.
+
+Full list of views and functions: docs/API_CONTRACT.md
+
+
+------------------------------------------------------------------------------
+10. RUNNING THE PROJECT LOCALLY
+------------------------------------------------------------------------------
+
+Requirements: Node.js 22+ (tested with Node 24), npm, Git.
+
+  1) Clone
+       git clone https://github.com/yashwanth-boddupalli/ODOOxGCET-Parallax.git
+       cd ODOOxGCET-Parallax
+
+  2) Install and start the frontend
+       cd frontend
+       npm install
+       npm run dev          -> open the http://localhost:... link it prints
+
+  3) (Optional) Enable the AI assistant locally
+       Create frontend/.env.local containing:
+         GROQ_API_KEY=<your Groq key from console.groq.com/keys>
+         GROQ_MODEL=openai/gpt-oss-120b        (optional)
+       Restart "npm run dev".
+
+  4) Sign up in the app. On a fresh database the first account becomes the
+     manager.
+
+The app already points at the team's Supabase project (jfbrettpstcrbdjvcpkb),
+which has the schema and demo data applied. No database setup is needed.
+
+Setting up a NEW Supabase project instead (about 5 minutes):
+  a) Supabase dashboard -> SQL Editor -> paste supabase/setup.sql -> Run.
+  b) Authentication -> URL Configuration: set the Site URL and add redirect
+     URLs (your Vercel URL + "/**", and http://localhost:5173/**).
+  c) Put that project's URL and publishable key in frontend/.env
+     (VITE_SUPABASE_URL, VITE_SUPABASE_PUBLISHABLE_KEY).
+
+
+------------------------------------------------------------------------------
+11. ENVIRONMENT VARIABLES
+------------------------------------------------------------------------------
+
+  Variable                        Where                       Needed?
+  ------------------------------  --------------------------  ----------------
+  GROQ_API_KEY                    frontend/.env.local (local) Yes, for the AI
+                                  Vercel project settings     assistant only
+                                  (production)
+  GROQ_MODEL                      same places                 Optional
+  VITE_SUPABASE_URL               frontend/.env               Optional (only
+  VITE_SUPABASE_PUBLISHABLE_KEY   frontend/.env               for a different
+                                                              Supabase project)
+
+  .env files are git-ignored. Never commit keys. Use the .env.example files
+  as templates.
+
+
+------------------------------------------------------------------------------
+12. DEPLOYMENT (VERCEL)
+------------------------------------------------------------------------------
+
+  - Vercel builds automatically on every push to GitHub:
+      main     -> production (stocksense-plum-beta.vercel.app)
+      develop  -> preview deployments (protected by Vercel login)
+  - The Vercel project's Root Directory is currently "frontend":
+      - Vercel detects Vite, runs npm install + npm run build, serves dist/
+      - frontend/vercel.json: every path except /api/* serves index.html
+        (so deep links like /reset-password work)
+      - frontend/api/assistant.js is deployed as the /api/assistant function
+  - If the Root Directory is ever changed to the repository root, it still
+    works: the root vercel.json builds frontend/, and the root
+    api/assistant.js re-exports the same function.
+  - Required in Vercel -> Settings -> Environment Variables:
+      GROQ_API_KEY  (Production + Preview). Redeploy after adding it.
+  - Add the deployed URL in Supabase -> Authentication -> URL Configuration.
+  - To release: merge develop into main.
+
+
+------------------------------------------------------------------------------
+13. TESTING
+------------------------------------------------------------------------------
+
+  Database (33 tests, no Docker needed):
+    cd supabase/tests && npm install && npm test
+
+    Covers: sign-up roles, anonymous lockout, staff limits, blocked direct
+    writes, all four operation types, WAITING vs READY, full rollback on
+    insufficient stock, backorders, invalid transitions, input validation,
+    manager sign-off, append-only ledger, non-negative stock, stock = ledger
+    consistency, seed totals, dashboard shapes, bulk reorder.
+
+    After changing a migration or the seed, regenerate setup.sql:
+    npm run bundle
+
+  Frontend:
+    cd frontend && npm run lint && npm run build
+
+
+------------------------------------------------------------------------------
+14. TEAM AND GIT WORKFLOW
+------------------------------------------------------------------------------
+
+  Contributors (from git history):
+    bandarupallymanideep-oss ... project structure, full frontend UI
+    yashwanth-boddupalli ....... repository owner, PR reviews and merges
+    Madongwa ................... Supabase backend, auth, frontend wiring,
+                                 Vercel deployment, assistant hosting fix
+    A_Thanish .................. AI assistant (chat bot)
+
+  Workflow in practice:
+    - Work is committed to "develop" (feature branches are optional).
+    - develop is merged into main through Pull Requests.
+    - main must always build and be deployable (it is the live site).
+    - Commit prefixes: feat:, fix:, docs:, chore:
+    - Never commit secrets.
+  Details: docs/GIT_WORKFLOW.md
+
+
+------------------------------------------------------------------------------
+15. KNOWN LIMITATIONS / NEXT STEPS
+------------------------------------------------------------------------------
+
+  - Auth emails use Supabase's built-in sender: rate-limited and only
+    delivers to organization members. Add custom SMTP for real users.
+  - Tables load up to 1,000 rows and paginate in the browser. Move paging
+    and filtering into the database as history grows.
+  - GMROI shows "n/a" because products have no cost price.
+  - Money is shown in US dollars ($) although the facilities are in
+    Hyderabad. A currency setting could be added.
+  - One ~600 kB JavaScript bundle. Lazy-load routes if first load is slow.
+  - Concurrent validations are protected by row locks but not covered by an
+    automated test (PGlite has a single connection).
+  - The AI assistant is read-only by design and depends on Groq availability
+    and rate limits.
+  - docs/GIT_WORKFLOW.md still describes feature/* -> main, while the team
+    uses develop -> main.
+
+
+------------------------------------------------------------------------------
+16. FURTHER DOCUMENTATION
+------------------------------------------------------------------------------
+
+  README.md ................... quick start
+  supabase/README.md .......... database setup, stock rules, tests
+  docs/BACKEND_PLAN.md ........ architecture, data model, design decisions
+  docs/API_CONTRACT.md ........ every view and function the frontend uses
+  docs/CONTRACT_GAPS.md ....... open issues and what has been resolved
+  docs/FRONTEND_ANALYSIS.md ... historical analysis of the original UI
+  docs/PROJECT_PLAN.md ........ original development phases
+  docs/GIT_WORKFLOW.md ........ branching and PR rules
+
+==============================================================================

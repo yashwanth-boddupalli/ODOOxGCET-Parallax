@@ -167,25 +167,25 @@
 .form-alert.error {
   background: var(--rose-light);
   border: 1px solid var(--rose-border);
-  color: var(--rose-hover);
+  color: var(--rose-strong);
 }
 
 .form-alert.success {
   background: var(--emerald-light);
   border: 1px solid var(--emerald-border);
-  color: var(--emerald-hover);
+  color: var(--emerald-strong);
 }
 
 .form-alert.info {
   background: var(--primary-light);
   border: 1px solid var(--primary-border);
-  color: var(--primary-hover);
+  color: var(--primary-strong);
 }
 
 .form-alert.warning {
   background: var(--amber-light);
   border: 1px solid var(--amber-border);
-  color: var(--amber-hover);
+  color: var(--amber-strong);
 }
 
 /* Buttons that this file adds on top of components.css */
@@ -208,7 +208,7 @@
 }
 
 .btn-danger:hover:not(:disabled) {
-  background-color: #ffe4e6;
+  background-color: var(--rose-light-hover);
 }
 
 .btn-success {
@@ -228,7 +228,7 @@
 }
 
 .link-button:hover {
-  color: var(--primary-hover);
+  color: var(--primary-strong);
   text-decoration: underline;
 }
 

@@ -84,7 +84,7 @@
 }
 
 .btn-outline-primary:hover {
-  background-color: #dbeafe;
+  background-color: var(--primary-light-hover);
 }
 
 /* KPI Cards Grid */
@@ -195,7 +195,7 @@
 }
 
 .trend-badge.neutral {
-  background-color: #f1f5f9;
+  background-color: var(--bg-surface-hover);
   color: var(--text-secondary);
 }
 
@@ -274,23 +274,23 @@
 }
 
 .operation-badge.receipt {
-  background-color: #ecfdf5;
-  color: #047857;
+  background-color: var(--emerald-light);
+  color: var(--emerald-strong);
 }
 
 .operation-badge.delivery {
-  background-color: #eff6ff;
-  color: #1d4ed8;
+  background-color: var(--primary-light);
+  color: var(--primary-strong);
 }
 
 .operation-badge.transfer {
-  background-color: #eef2ff;
-  color: #4338ca;
+  background-color: var(--indigo-light);
+  color: var(--indigo-strong);
 }
 
 .operation-badge.adjustment {
-  background-color: #fef3c7;
-  color: #b45309;
+  background-color: var(--amber-soft);
+  color: var(--amber-strong);
 }
 
 /* Card Container */
@@ -356,7 +356,7 @@
 }
 
 .data-table th {
-  background-color: #f8fafc;
+  background-color: var(--bg-surface-secondary);
   padding: 12px 16px;
   color: var(--text-secondary);
   font-weight: 600;
@@ -379,7 +379,7 @@
 }
 
 .data-table tbody tr:hover {
-  background-color: #f8fafc;
+  background-color: var(--bg-surface-secondary);
 }
 
 .table-sku-pill {
@@ -413,7 +413,7 @@
   align-items: center;
   justify-content: space-between;
   border-top: 1px solid var(--border-subtle);
-  background-color: #fafbfc;
+  background-color: var(--bg-surface-muted);
   font-size: 13px;
   color: var(--text-secondary);
   flex-wrap: wrap;
@@ -430,7 +430,7 @@
   padding: 5px 10px;
   border-radius: var(--radius-sm);
   border: 1px solid var(--border-subtle);
-  background-color: #ffffff;
+  background-color: var(--bg-surface);
   color: var(--text-secondary);
   font-size: 12.5px;
   font-weight: 500;
@@ -504,7 +504,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  background-color: #ffffff;
+  background-color: var(--bg-surface);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-md);
   padding: 6px 12px;
@@ -516,6 +516,7 @@
   background: transparent;
   width: 100%;
   font-size: 13px;
+  color: var(--text-primary);
 }
 
 .filter-pills-group {
@@ -530,7 +531,7 @@
   font-size: 12px;
   font-weight: 500;
   border: 1px solid var(--border-subtle);
-  background-color: #ffffff;
+  background-color: var(--bg-surface);
   color: var(--text-secondary);
   transition: all 0.15s ease;
 }

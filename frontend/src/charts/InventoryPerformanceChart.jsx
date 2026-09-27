@@ -45,11 +45,12 @@ export const InventoryPerformanceChart = ({ data = [], loading = false }) => {
         <div className="card-actions">
           <div className="chart-legend-row">
             <div className="legend-item">
-              <span className="legend-indicator" style={{ backgroundColor: '#2563eb' }} />
+              <span className="legend-indicator" style={{ backgroundColor: 'var(--primary)' }} />
               <span>Turnover Velocity (x/yr)</span>
             </div>
+            {/* Legend icon matching bar gradient */}
             <div className="legend-item">
-              <span className="legend-indicator" style={{ backgroundColor: '#10b981' }} />
+              <span className="legend-indicator" style={{ backgroundColor: 'var(--emerald)' }} />
               <span>Monthly Volume (Units)</span>
             </div>
           </div>
@@ -61,7 +62,7 @@ export const InventoryPerformanceChart = ({ data = [], loading = false }) => {
         <div className="perf-metrics-strip">
           <div className="perf-metric-mini">
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <TrendingUp size={14} color="#2563eb" />
+              <TrendingUp size={14} style={{ color: 'var(--primary)' }} />
               <span className="perf-metric-title">Annualized Turnover</span>
             </div>
             <span className="perf-metric-val">{turnover === null ? '—' : `${turnover}x`}</span>
@@ -74,7 +75,7 @@ export const InventoryPerformanceChart = ({ data = [], loading = false }) => {
 
           <div className="perf-metric-mini">
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <CheckCircle size={14} color="#059669" />
+              <CheckCircle size={14} style={{ color: 'var(--emerald)' }} />
               <span className="perf-metric-title">Order Fulfillment Rate</span>
             </div>
             <span className="perf-metric-val">{fulfillment === null ? '—' : `${fulfillment}%`}</span>
@@ -83,7 +84,7 @@ export const InventoryPerformanceChart = ({ data = [], loading = false }) => {
 
           <div className="perf-metric-mini">
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <ShieldCheck size={14} color="#4f46e5" />
+              <ShieldCheck size={14} style={{ color: 'var(--indigo)' }} />
               <span className="perf-metric-title">Stock Audit Accuracy</span>
             </div>
             <span className="perf-metric-val">{accuracy === null ? '—' : `${accuracy}%`}</span>
@@ -99,8 +100,8 @@ export const InventoryPerformanceChart = ({ data = [], loading = false }) => {
             <svg viewBox={`0 0 ${width} ${height}`} className="chart-svg" style={{ height: '200px' }}>
               <defs>
                 <linearGradient id="volumeBarGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#93c5fd" stopOpacity="0.8" />
-                  <stop offset="100%" stopColor="#dbeafe" stopOpacity="0.3" />
+                  <stop offset="0%" stopOpacity="0.8" style={{ stopColor: 'var(--chart-volume-top)' }} />
+                  <stop offset="100%" stopOpacity="0.3" style={{ stopColor: 'var(--chart-volume-bottom)' }} />
                 </linearGradient>
               </defs>
 
@@ -110,7 +111,7 @@ export const InventoryPerformanceChart = ({ data = [], loading = false }) => {
                 return (
                   <g key={f}>
                     <line x1={padding.left} y1={yFor(val)} x2={width - padding.right} y2={yFor(val)} className="grid-line" />
-                    <text x={padding.left - 8} y={yFor(val) + 4} textAnchor="end" fontSize="11" fill="#94a3b8">
+                    <text x={padding.left - 8} y={yFor(val) + 4} textAnchor="end" fontSize="11" style={{ fill: 'var(--text-muted)' }}>
                       {val.toFixed(1)}x
                     </text>
                   </g>
@@ -130,20 +131,20 @@ export const InventoryPerformanceChart = ({ data = [], loading = false }) => {
               })}
 
               {/* Turnover Line */}
-              <path d={linePath} fill="none" stroke="#2563eb" strokeWidth="3" strokeLinecap="round" />
+              <path d={linePath} fill="none" stroke="var(--primary)" strokeWidth="3" strokeLinecap="round" />
 
               {/* Nodes and Labels */}
               {points.map((pt) => (
                 <g key={pt.month}>
                   {pt.y !== null && (
                     <>
-                      <circle cx={pt.x} cy={pt.y} r="5" fill="#ffffff" stroke="#2563eb" strokeWidth="3" />
-                      <text x={pt.x} y={pt.y - 10} textAnchor="middle" fontSize="11" fontWeight="600" fill="#1e293b">
+                      <circle cx={pt.x} cy={pt.y} r="5" stroke="var(--primary)" strokeWidth="3" style={{ fill: 'var(--bg-surface)' }} />
+                      <text x={pt.x} y={pt.y - 10} textAnchor="middle" fontSize="11" fontWeight="600" style={{ fill: 'var(--text-primary)' }}>
                         {pt.turnover}x
                       </text>
                     </>
                   )}
-                  <text x={pt.x} y={height - 12} textAnchor="middle" fontSize="12" fontWeight="500" fill="#64748b">
+                  <text x={pt.x} y={height - 12} textAnchor="middle" fontSize="12" fontWeight="500" style={{ fill: 'var(--text-secondary)' }}>
                     {pt.month}
                   </text>
                 </g>
